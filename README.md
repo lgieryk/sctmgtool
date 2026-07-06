@@ -33,7 +33,8 @@ is slightly faster.
 
 ## Installation
 ### Binary package for Windows
-Download a precompiled binary for Windows from here:
+Download a precompiled binary for Windows from
+https://github.com/lgieryk/sctmgtool/releases
 
 ### Python package
     git clone https://github.com/lgieryk/sctmgtool.git

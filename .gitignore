@@ -2,3 +2,6 @@
 .coverage
 *.pyc
 src/*egg-info*
+build/*
+dist/*
+*.spec

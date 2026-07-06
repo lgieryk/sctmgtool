@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+
+  release:
+
+    environment: production
+
+    runs-on: windows-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run unit tests
+        run: |
+          pytest
+
+      - name: Verify tag matches version
+        shell: python
+        run: |
+          import os
+          import sctmgtool
+
+          tag = os.environ["GITHUB_REF_NAME"]
+          if tag != f"v{sctmgtool.__version__}":
+              raise SystemExit(
+                  f"Tag {tag} != version {sctmgtool.__version__}"
+              )
+
+          print(f"Version OK: {sctmgtool.__version__}")
+
+      - name: Build EXE
+        run: |
+          $version = "${{ github.ref_name }}"
+          pyinstaller src/sctmgtool/__main__.py `
+            --onefile `
+            --clean `
+            --name "SCTMGTool-$version"
+
+      - name: Add support files
+        shell: pwsh
+        run: |
+          Copy-Item README.md dist\
+          Copy-Item LICENSE dist\
+          Copy-Item src\sctmgtool\units\NOTICE.txt dist\
+
+      - name: Zip executable
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path dist\* `
+            -DestinationPath "SCTMGTool-$($env:GITHUB_REF_NAME).zip"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: "SCTMGTool-${{ github.ref_name }}.zip"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "SCTMGTool-${{ github.ref_name }}.zip"
