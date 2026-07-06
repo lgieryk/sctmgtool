@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "sctmgtool.__version__"}
+
+[project]
+name = "sctmgtool"
+description = "A combat analysis tool for StarCraft: Tabletop Miniatures Game"
+license = "MIT"
+license-files = ["LICENSE", "src/sctmgtool/units/NOTICE.txt"]
+dynamic = ["version"]
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "platformdirs",
+    "customtkinter",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+]
+
+[tool.ruff]
+line-length = 160
