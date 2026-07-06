@@ -1,0 +1,17 @@
+NOTICE — THIRD-PARTY CONTENT IN THIS DIRECTORY
+
+The files in this directory (src/sctmgtool/units/) are NOT covered by the MIT
+License (see /LICENSE) that applies to the rest of this package.
+
+This directory contains a dataset that may include:
+- Names and other trademarks belonging to their respective owners, included
+  solely for identification and reference purposes. This does not imply
+  endorsement, sponsorship, or affiliation with the trademark owners.
+- Short quotations from third-party sources, included under fair use (copyright
+  law) for purposes of identification and reference.
+
+All trademarks and registered trademarks mentioned are the property
+of their respective owners. No ownership claim is made or implied.
+
+Rights holders who believe content here should be reviewed or removed
+can contact: [email/contact].
