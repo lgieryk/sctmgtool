@@ -37,21 +37,22 @@ _PROTOSS_UNITS: tuple[Unit] = (
 )
 
 
-def _guardian_shield_effect(_, __, pool):
-    pool.attack_pool.transfer_dice_to(pool.discard_pool, up_to=1)
+def _guardian_shield_effect(_, roll, pools):
+    if roll.weapon_batch.weapon.type_letter() == "R":
+        pools.attack_pool.transfer_dice_to(pools.discard_pool, up_to=1)
 
 
 def _apply_common_skills(units):
     guardian_shield = Upgrade(
         "! Guardian Shield / Sentry",
-        message='Apply active GS of a friendly Sentry unit within 4"',
+        message='Apply active GS of a friendly Sentry unit within 4" - All Ranged Attacks are made with 1 fewer die in the Attack Pool.',
         upgrade_type=Upgrade.Type.Defensive,
         apply={Hook.RollPoolsInitiated: _guardian_shield_effect},
     )
 
     psionic_presence = Upgrade(
-        "! Psionic Presence / Stalker",
-        message="Apply PP of a friendly Stalker's Shade token within 4\"",
+        "! Psionic Presence / Adept",
+        message="Apply PP of a friendly Adept's Shade token within 4\" - All weapons gain PRECISION (1)",
         apply=lambda unit: unit.weapon("*").add_tag(Tag.Precision1),
     )
 
