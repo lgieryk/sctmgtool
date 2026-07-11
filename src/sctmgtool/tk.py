@@ -391,7 +391,7 @@ def tkinter_main(units: list[Unit]):
     duf.pack(padx=10, pady=2, fill="x")
 
     plots = ctk.CTkFrame(root)
-    figure = Figure(figsize=(15, 3), dpi=root.winfo_fpixels("1i"))
+    figure = Figure(figsize=(15, 3))
     canvas = FigureCanvasTkAgg(figure, master=plots)
     canvas.get_tk_widget().pack(fill="x")
     plots.pack(fill="x")
