@@ -12,7 +12,7 @@ Any references to unit names, factions, stats, or other game data are used
 solely for identification and analytical purposes under fair use — see
 [NOTICE.txt](src/sctmgtool/units/NOTICE.txt) for details.
 
-![Screenshot](https://raw.githubusercontent.com/lgieryk/repo/sctmgtool/main/assets/screenshot.png)
+![Screenshot](https://raw.githubusercontent.com/lgieryk/sctmgtool/main/assets/screenshot.png)
 
 ## A word from the author
 Is that UpgradeX, which gives TAG-Y, worth Z minerals? I wanted to know, so I
