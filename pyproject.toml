@@ -8,10 +8,14 @@ version = {attr = "sctmgtool.__version__"}
 [project]
 name = "sctmgtool"
 description = "A combat analysis tool for StarCraft: Tabletop Miniatures Game"
+authors = [
+  { name="Łukasz Gieryk", email="108897150+lgieryk@users.noreply.github.com" },
+]
 license = "MIT"
 license-files = ["LICENSE", "src/sctmgtool/units/NOTICE.txt"]
 dynamic = ["version"]
 requires-python = ">=3.12"
+readme = "README.md"
 dependencies = [
     "matplotlib",
     "numpy",
@@ -26,6 +30,9 @@ dev = [
     "ruff",
     "pyinstaller",
 ]
+
+[project.urls]
+Homepage = "https://github.com/lgieryk/sctmgtool"
 
 [tool.ruff]
 line-length = 160

@@ -1,0 +1,25 @@
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-pypi:
+    name: Publish to PyPI
+    if: github.event.release.prerelease == false
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/sctmgtool
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download release assets
+        run: gh release download ${{ github.event.release.tag_name }} -R ${{ github.repository }} -D dist/ -p "*.whl" -p "*.tar.gz"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

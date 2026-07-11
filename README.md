@@ -12,6 +12,8 @@ Any references to unit names, factions, stats, or other game data are used
 solely for identification and analytical purposes under fair use — see
 [NOTICE.txt](src/sctmgtool/units/NOTICE.txt) for details.
 
+![Screenshot](https://raw.githubusercontent.com/lgieryk/repo/sctmgtool/main/assets/screenshot.png)
+
 ## A word from the author
 Is that UpgradeX, which gives TAG-Y, worth Z minerals? I wanted to know, so I
 created SC:TMG Tool - an unofficial, poorly written, and _slow_ application
@@ -32,15 +34,22 @@ times. The results are saved, though, so returning to an already simulated clash
 is slightly faster.
 
 ## Installation
+### From PyPI
+    python3 -m venv env
+    source env/bin/activate
+    pip install --upgrade pip
+    pip install sctmgtool
+    python3 -m sctmgtool
+
 ### Binary package for Windows
 Download a precompiled binary for Windows from
 https://github.com/lgieryk/sctmgtool/releases
 
-### Python package
+### Installation from sources
     git clone https://github.com/lgieryk/sctmgtool.git
     cd sctmgtool
-    python3 -m venv .venv
-    source .venv/bin/activate
+    python3 -m venv env
+    source env/bin/activate
     pip install -e .
     python3 -m sctmgtool
 
