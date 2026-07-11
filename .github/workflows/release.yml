@@ -77,11 +77,12 @@ jobs:
 
       - name: Build EXE
         run: |
-          $version = "${{ github.ref_name }}"
           pyinstaller src/sctmgtool/__main__.py `
             --onefile `
+            --noconsole `
             --clean `
-            --name "SCTMGTool-$version"
+            --icon assets/icon.png `
+            --name "SCTMGTool"
 
       - name: Add support files
         shell: pwsh
