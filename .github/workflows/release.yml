@@ -44,7 +44,7 @@ jobs:
           import sctmgtool
 
           tag = os.environ["GITHUB_REF_NAME"]
-          if tag != f"v{sctmgtool.__version__}":
+          if not tag.startswith(f"v{sctmgtool.__version__}"):
               raise SystemExit(
                   f"Tag {tag} != version {sctmgtool.__version__}"
               )
