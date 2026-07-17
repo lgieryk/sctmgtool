@@ -196,8 +196,8 @@ class MusteredUnit(Unit):
 
             if w.tags & Tag.Sidearm:
                 pass
-            elif w.type_letter() not in default_added:
-                default_added.append(w.type_letter())
+            elif w.type_letter not in default_added:
+                default_added.append(w.type_letter)
             else:
                 continue
 
@@ -311,7 +311,7 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
     armour_pool.transfer_dice_to(damage_pool)
 
     # 4. Evade rolls
-    if batch.weapon.type_letter() in defender.evade_reroll:
+    if batch.weapon.type_letter in defender.evade_reroll:
         assert defender.evade is not None
         success_val = defender.evade
         if Tag._AntiEvade & batch.weapon.tags:
@@ -341,11 +341,11 @@ class ClashType(Enum):
 def select_weapons(attacker: MusteredUnit, defender: MusteredUnit, clash_type: ClashType) -> list[WeaponBatch]:
     def is_applicable(weapon: Weapon):
         if clash_type == ClashType.Charge:
-            return Tag.Ground in defender.tags and weapon.type_letter() == "C"
+            return Tag.Ground in defender.tags and weapon.type_letter == "C"
         elif clash_type == ClashType.CloseCombat:
-            return Tag.Ground in defender.tags and weapon.type_letter() == "E"
+            return Tag.Ground in defender.tags and weapon.type_letter == "E"
         else:
-            return weapon.type_letter() == "R" and weapon.target & defender.tags
+            return weapon.type_letter == "R" and weapon.target & defender.tags
 
     return [batch for batch in attacker.weapon_batches if is_applicable(batch.weapon)]
 

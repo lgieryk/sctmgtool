@@ -156,6 +156,7 @@ class Weapon:
     def set_damage(self, val: int):
         self.damage = val
 
+    @property
     def type_letter(self):
         return self.range if self.range in ("E", "C") else "R"
 
