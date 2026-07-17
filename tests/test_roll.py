@@ -238,12 +238,12 @@ def test_hooks():
     with patch("random.choices", side_effect=loaded_die(3)):
         # Hit on 3+ and Armour on 6+ -> all hits land and are not blocked
         unit = MusteredUnit.make(prototype, {})
-        ctx = HookContext([unit])
+        ctx = HookContext(unit)
         batch = WeaponBatch(1, weapon)
         assert roll_damage(None, batch, unit, ctx=ctx) == 8
 
         # The upgrade with a roll hook cancels 6 of the dice
         unit = MusteredUnit.make(prototype, {"Upgrade": True})
-        ctx = HookContext([unit])
+        ctx = HookContext(unit)
         batch = WeaponBatch(1, weapon)
         assert roll_damage(None, batch, unit, ctx=ctx) == 2

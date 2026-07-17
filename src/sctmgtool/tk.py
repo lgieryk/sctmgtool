@@ -134,8 +134,10 @@ class RollCache(Cache):
         if defender.shield is not None:
             damage_limit += defender.shield
 
+        ctx = HookContext(attacker, defender)
+        ctx.apply_opponent_hooks(attacker, defender)
+
         for ct in ClashType:
-            ctx = HookContext((attacker, defender))
             active_batches = select_weapons(attacker, defender, ct)
 
             damage = [sum(roll_damage(attacker, batch, defender, ctx) for batch in active_batches) for _ in range(ROLL_COUNT)]
