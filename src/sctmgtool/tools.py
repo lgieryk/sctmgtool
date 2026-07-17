@@ -11,7 +11,7 @@ import operator
 import copy
 import logging
 from sctmgtool.base import Unit, Weapon, Tag, Upgrade, Hook
-from sctmgtool.hooks import PoolHookArgs, RollHookArgs
+import sctmgtool.hooks as hooks
 
 
 D6POP = (1, 2, 3, 4, 5, 6)
@@ -247,10 +247,8 @@ class HookContext:
         owner: MusteredUnit
         apply: callable
 
-    def __init__(self, units: list[MusteredUnit] = None):
+    def __init__(self, *units):
         self.hooks = defaultdict(list)
-        if units is None:
-            return
         for unit in units:
             for upgrade in unit.upgrades:
                 for hook_type, action in upgrade.apply.items():
@@ -259,6 +257,12 @@ class HookContext:
     def call_hooks(self, hook_type, *args, **kwargs):
         for hook in self.hooks[hook_type]:
             hook.apply(hook.owner, *args, **kwargs)
+
+    def apply_opponent_hooks(self, *units):
+        for hook in self.hooks[Hook.ModifyOpponent]:
+            for unit in units:
+                if unit != hook.owner:
+                    hook.apply(unit)
 
 
 def roll_surge(weapon: Weapon, defender: MusteredUnit):
@@ -280,8 +284,8 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
     damage_pool = DicePool.empty()
     discard_pool = DicePool.empty()
 
-    php = PoolHookArgs(attack_pool, armour_pool, damage_pool, discard_pool)
-    ctx.call_hooks(Hook.RollPoolsInitiated, RollHookArgs(attacker, batch, defender), php)
+    pha = hooks.PoolHookArgs(attack_pool, armour_pool, damage_pool, discard_pool)
+    ctx.call_hooks(Hook.RollPoolsInitiated, hooks.RollHookArgs(attacker, batch, defender), pha)
 
     # 1. Roll to hit
     attack_pool.roll()
