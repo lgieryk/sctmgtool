@@ -64,7 +64,12 @@ def test_weapon():
     w.buff_hit(1)
     assert w.hit == 2
     w.buff_hit(1)
-    assert w.hit == 2  # Cannot get below 2
+    assert w.hit == 2  # "A Target Number can never be modified below 2+ or above 6+."
+
+    w.debuff_hit(3)
+    assert w.hit == 5
+    w.debuff_hit(3)
+    assert w.hit == 6  # As above
 
 
 def test_str():
