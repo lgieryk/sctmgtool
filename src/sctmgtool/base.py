@@ -15,8 +15,8 @@ class Faction(Flag):
     Protoss = auto()
 
 
-# fmt: off
 class Tag(Flag):
+    # fmt: off
     _None           = 0b0000000000000000000000000000000000000000000000
     Biological      = 0b0000000000000000000000000000000000000000000001
     Mechanical      = 0b0000000000000000000000000000000000000000000010
@@ -53,7 +53,7 @@ class Tag(Flag):
     _CriticalHit    = 0b0000010000000000000000000000000000000000000000
     CriticalHit2    = 0b0001010000000000000000000000000000000000000000
     Instant         = 0b0010000000000000000000000000000000000000000000
-# fmt: on
+    # fmt: on
 
     def __str__(self):
         masked_value = self.value & ~Tag(Tag._AntiEvade | Tag._Precision | Tag._PierceArmoured | Tag._Tough).value
@@ -106,9 +106,9 @@ class Tag(Flag):
 class SurgeDie(Enum):
     @enum.nonmember
     class _Inner(NamedTuple):
-        d3:int
-        d6:int
-        add:int
+        d3: int
+        d6: int
+        add: int
 
     D3 = _Inner(1, 0, 0)
     D6 = _Inner(0, 1, 0)
@@ -119,41 +119,41 @@ class SurgeDie(Enum):
 
 
 @dataclass
-class Weapon():
+class Weapon:
     name: str
-    range: (int | str)
+    range: int | str
     target: Tag
     rate_of_attack: int
     hit: int
     surge: Tag
     surge_die: SurgeDie
     damage: int
-    exchange_for:str = ""
+    exchange_for: str = ""
     # pylint: disable-next=protected-access
-    tags:Tag = Tag._None
+    tags: Tag = Tag._None
 
-    def add_tag(self, tag:Tag):
+    def add_tag(self, tag: Tag):
         if tag & self.tags:  # replace the existing value-tag with a new value, e.g., Pierce1 -> Pierce2
             new = Tag(self.tags.value & ~tag.sibling_bits())
             self.tags = new
         self.tags |= tag
 
-    def add_surge_tag(self, tag:Tag):
+    def add_surge_tag(self, tag: Tag):
         if self.surge is None:
             self.surge = tag
         else:
             self.surge |= tag
 
-    def set_surge_die(self, die:SurgeDie):
+    def set_surge_die(self, die: SurgeDie):
         self.surge_die = die
 
-    def buff_roa(self, val:int):
+    def buff_roa(self, val: int):
         self.rate_of_attack += val
 
-    def buff_hit(self, val:int):
+    def buff_hit(self, val: int):
         self.hit = max(2, self.hit - val)
 
-    def set_damage(self, val:int):
+    def set_damage(self, val: int):
         self.damage = val
 
     def type_letter(self):
@@ -161,7 +161,7 @@ class Weapon():
 
     def __str__(self):
         ef = f" FOR:{self.exchange_for}" if self.exchange_for != "" else ""
-        surge = f" {str(self.surge or ""):<16} {str(self.surge_die or ""):<4}"
+        surge = f" {str(self.surge or ''):<16} {str(self.surge_die or ''):<4}"
 
         if Tag.Flying in self.target and Tag.Ground in self.target:
             tgt = "GF"
@@ -183,7 +183,7 @@ class Squad(NamedTuple):
 
 
 @dataclass
-class Speed():
+class Speed:
     unit: int
     model: int
 
@@ -192,10 +192,10 @@ class Speed():
 
 
 @dataclass
-class Cost():
-    small: int|None = None
-    large: int|None = None
-    points: int|None = None
+class Cost:
+    small: int | None = None
+    large: int | None = None
+    points: int | None = None
 
     def __str__(self):
         points = f"/{self.points}P" if self.points else ""
@@ -207,16 +207,18 @@ class Hook(Enum):
     RollPoolsInitiated = auto()
 
 
-class Upgrade():
+class Upgrade:
     class Type(Flag):
         Other = auto()
         Defensive = auto()
         Offensive = auto()
 
-    def __init__(self, name:str, /, apply:Callable|dict=None, *, message="", cost=None, upgrade_type=None):
+    def __init__(self, name: str, /, apply: Callable | dict = None, *, message="", cost=None, upgrade_type=None):
         if apply is Upgrade.activate_weapon:
+
             def wrapper(unit):
                 return Upgrade.activate_weapon(unit, name)
+
             apply = wrapper
             message = "Upgrade weapon"
 
@@ -232,15 +234,15 @@ class Upgrade():
         self.cost = cost
 
     def __str__(self):
-        return f"{self.name} {self.cost or "-"} {self.message}"
+        return f"{self.name} {self.cost or '-'} {self.message}"
 
     @staticmethod
-    def activate_weapon(unit, weapon_name:str):
+    def activate_weapon(unit, weapon_name: str):
         unit.activate_weapon(weapon_name)
 
 
 @dataclass
-class Unit():
+class Unit:
     faction: Faction
     name: str
     shield: int
