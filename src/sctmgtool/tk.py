@@ -289,8 +289,6 @@ def tkinter_main(units: list[Unit]):
                 attacker.upgrade_vars.append(var)
                 cb = ctk.CTkCheckBox(u_frame, text=str(upgrade), variable=var, command=partial(on_upgrade_toggled, attacker, upgrade.name, var))
                 cb.pack(anchor="w")
-            if Upgrade.Type.Other in upgrade.upgrade_type:
-                ctk.CTkLabel(u_frame, text=f"(other) {upgrade.name}").pack(anchor="w")
 
         if len(attacker.upgrade_vars) == 0:
             ctk.CTkLabel(u_frame, text="(no offensive upgrades)", padx=10).pack(anchor="w")

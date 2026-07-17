@@ -14,6 +14,9 @@ class Faction(Flag):
     Terran = auto()
     Protoss = auto()
 
+    def __repr__(self):
+        return str(self)
+
 
 class Tag(Flag):
     # fmt: off
@@ -55,28 +58,26 @@ class Tag(Flag):
     Instant         = 0b0010000000000000000000000000000000000000000000
     # fmt: on
 
+    def _str(self, r):
+        masked_value = self.value & ~Tag.HIDDEN_MEMBERS_MASK.value
+        return "|".join(name for name, member in Tag.VISIBLE_MEMBERS if member.value & masked_value)
+
     def __str__(self):
-        masked_value = self.value & ~Tag(Tag._AntiEvade | Tag._Precision | Tag._PierceArmoured | Tag._Tough).value
-        first = True
-        ret = ""
-        for name, member in Tag.__members__.items():
-            if not name.startswith("_") and member.value & masked_value:
-                if not first:
-                    ret += "|"
-                first = False
-                ret += name
-        return ret
+        return self._str(lambda x: f"{x}")
+
+    def __repr__(self):
+        return self._str(lambda x: f"Tag.{x}")
 
     @staticmethod
     def _lsb(val):
         return (val & -val).bit_length() - 1
 
     def sibling_bits(self):
-        siblings = 0
-        for _name, member in Tag.__members__.items():
+        bits = 0
+        for _, member in Tag.__members__.items():
             if member.value & self.value:
-                siblings |= member.value
-        return siblings
+                bits |= member.value
+        return bits
 
     def _extract(self, tag):
         if tag not in self:
@@ -103,6 +104,11 @@ class Tag(Flag):
         return self._extract(Tag._CriticalHit)
 
 
+# pylint: disable-next=protected-access
+Tag.HIDDEN_MEMBERS_MASK = Tag._AntiEvade | Tag._Precision | Tag._PierceArmoured | Tag._Tough | Tag._CriticalHit
+Tag.VISIBLE_MEMBERS = [(name, member) for name, member in Tag.__members__.items() if not name.startswith("_")]
+
+
 class SurgeDie(Enum):
     @enum.nonmember
     class _Inner(NamedTuple):
@@ -116,6 +122,9 @@ class SurgeDie(Enum):
 
     def __str__(self):
         return self.name
+
+    def __repr__(self):
+        return f"{type(self).__name__}.{self.name}"
 
 
 @dataclass
@@ -194,9 +203,9 @@ class Speed:
 
 @dataclass
 class Cost:
-    small: int | None = None
-    large: int | None = None
-    points: int | None = None
+    small: int = 0
+    large: int = 0
+    points: int = 0
 
     def __str__(self):
         points = f"/{self.points}P" if self.points else ""
@@ -205,6 +214,7 @@ class Cost:
 
 class Hook(Enum):
     ModifyOwner = auto()
+    ModifyOpponent = auto()
     RollPoolsInitiated = auto()
 
 
@@ -223,7 +233,13 @@ class Upgrade:
             apply = wrapper
             message = "Upgrade weapon"
 
-        if callable(apply):
+        if apply is None:
+
+            def _no(*_, **__):
+                raise NotImplementedError()
+
+            apply = {Hook.ModifyOwner: _no}
+        elif callable(apply):
             apply = {Hook.ModifyOwner: apply}
         else:
             assert isinstance(apply, dict)
@@ -236,6 +252,9 @@ class Upgrade:
 
     def __str__(self):
         return f"{self.name} {self.cost or '-'} {self.message}"
+
+    def __repr__(self):
+        return f"Upgrade({self.name!r}, message={self.message!r}, cost={self.cost!r})"
 
     @staticmethod
     def activate_weapon(unit, weapon_name: str):
