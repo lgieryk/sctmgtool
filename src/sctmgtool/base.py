@@ -162,6 +162,9 @@ class Weapon:
     def buff_hit(self, val: int):
         self.hit = max(2, self.hit - val)
 
+    def debuff_hit(self, val: int):
+        self.hit = min(6, self.hit + val)
+
     def set_damage(self, val: int):
         self.damage = val
 
