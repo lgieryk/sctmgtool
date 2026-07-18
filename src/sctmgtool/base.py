@@ -10,9 +10,9 @@ import enum
 
 
 class Faction(Flag):
-    Zerg = auto()
-    Terran = auto()
-    Protoss = auto()
+    Terran = 0
+    Protoss = 1
+    Zerg = 2
 
     def __repr__(self):
         return str(self)
