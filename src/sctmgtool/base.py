@@ -60,7 +60,7 @@ class Tag(Flag):
 
     def _str(self, r):
         masked_value = self.value & ~Tag.HIDDEN_MEMBERS_MASK.value
-        return "|".join(name for name, member in Tag.VISIBLE_MEMBERS if member.value & masked_value)
+        return "|".join(r(name) for name, member in Tag.VISIBLE_MEMBERS if member.value & masked_value)
 
     def __str__(self):
         return self._str(lambda x: f"{x}")

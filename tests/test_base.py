@@ -27,6 +27,9 @@ def test_tag():
     s = s.replace("PierceArmoured2", "")
     assert s == "|"
 
+    assert str(Tag.AntiEvade2) == "AntiEvade2"
+    assert repr(Tag.AntiEvade2) == "Tag.AntiEvade2"
+
 
 def test_tag_sibling_bits():
     bits = Tag.AntiEvade1.sibling_bits()
