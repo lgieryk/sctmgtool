@@ -181,6 +181,8 @@ def tkinter_main(units: list[Unit]):
     name_to_unit = {u.name: u for u in units}
     assert len(name_to_unit) == len(units)
 
+    unit_labels = [u.name for u in sorted(units, key=lambda unit: (unit.faction.value, unit.name))]
+
     weapon_labels = {}
     subfigures = []
     attacker = _UnitData()
@@ -346,13 +348,13 @@ def tkinter_main(units: list[Unit]):
     sel.columnconfigure(2, weight=1)
     sel.pack(fill="x")
 
-    cba = ctk.CTkOptionMenu(sel, values=[u.name for u in units], height=40, command=lambda value: refresh_atk(auf, awf, value))
+    cba = ctk.CTkOptionMenu(sel, values=unit_labels, height=40, command=lambda value: refresh_atk(auf, awf, value))
     cba.grid(row=0, column=0, sticky="ew", padx=5)
 
     vs = ctk.CTkButton(sel, text="vs", command=swap_units)
     vs.grid(row=0, column=1)
 
-    cbd = ctk.CTkOptionMenu(sel, values=[u.name for u in units], height=40, command=lambda value: refresh_def(duf, value))
+    cbd = ctk.CTkOptionMenu(sel, values=unit_labels, height=40, command=lambda value: refresh_def(duf, value))
     cbd.grid(row=0, column=2, sticky="ew", padx=5)
 
     af = ctk.CTkFrame(root)
