@@ -247,14 +247,15 @@ _TERRAN_UNITS: tuple[Unit] = (
 
 
 def _apply_common_skills(units):
-    orders = Upgrade(
-        "! Orders / Jim Raynor",
-        message='Apply active Orders of a friendly Jim Raynor within 8" - Unit’s first used weapon gains the CRITICAL HIT (2)',
-        apply=lambda unit: unit.weapon("*").add_tag(Tag.CriticalHit2),
-    )
+    # TODO: Only one weapon gains the buff, not all of them :(
+    # orders = Upgrade(
+    #     "! Orders / Jim Raynor",
+    #     message='Apply active Orders of a friendly Jim Raynor within 8" - Unit’s first used weapon gains the CRITICAL HIT (2)',
+    #     apply=lambda unit: unit.weapon("*").add_tag(Tag.CriticalHit2),
+    # )
 
-    for unit in units:
-        unit.upgrades = (*unit.upgrades, orders)
+    # for unit in units:
+    #     unit.upgrades = (*unit.upgrades, orders)
 
     return units
 
