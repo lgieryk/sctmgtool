@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SC:TMG Tool</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="page-header">
+        <h1>SC:TMG Tool</h1>
+      </header>
+
+      <div id="connection-error" class="connection-error" role="alert" hidden>
+        We’re sorry, but the server is currently unavailable. This fan-made project uses free hosting, which may occasionally be
+        unreliable. Please try again later.
+      </div>
+
+      <section class="matchup" aria-label="Unit selection">
+        <div class="field">
+          <select id="attacker-select" aria-label="Attacker"></select>
+        </div>
+        <button id="swap-units" class="swap-button" type="button" aria-label="Swap attacker and defender">VS</button>
+        <div class="field">
+          <select id="defender-select" aria-label="Defender"></select>
+        </div>
+      </section>
+
+      <section class="unit-grid" aria-label="Unit configuration">
+        <article class="unit-panel">
+          <div class="unit-overview">
+            <fieldset class="squad-size">
+              <legend>Squad size</legend>
+              <label><input type="radio" name="attacker-size" checked><span>3</span></label>
+              <label><input type="radio" name="attacker-size"><span>5</span></label>
+            </fieldset>
+            <pre id="attacker-summary" class="unit-summary">Choose a unit to see its statistics.</pre>
+          </div>
+          <section>
+            <h3>Weapons</h3>
+            <ul id="attacker-weapons" class="weapons"><li>—</li></ul>
+          </section>
+          <section class="upgrades">
+            <h3>Offensive upgrades</h3>
+            <div id="attacker-upgrades" class="upgrade-list">
+              <p class="placeholder">Choose a unit to view available upgrades.</p>
+            </div>
+          </section>
+        </article>
+
+        <article class="unit-panel">
+          <div class="unit-overview">
+            <fieldset class="squad-size">
+              <legend>Squad size</legend>
+              <label><input type="radio" name="defender-size" checked><span>3</span></label>
+              <label><input type="radio" name="defender-size"><span>5</span></label>
+            </fieldset>
+            <pre id="defender-summary" class="unit-summary">Choose a unit to see its statistics.</pre>
+          </div>
+          <section class="upgrades">
+            <h3>Defensive upgrades</h3>
+            <div id="defender-upgrades" class="upgrade-list">
+              <p class="placeholder">Choose a unit to view available upgrades.</p>
+            </div>
+          </section>
+        </article>
+      </section>
+
+      <section class="results" aria-label="Combat results">
+        <article class="chart-card">
+          <div id="results-container" class="results-container" aria-busy="false">
+            <img id="results-image" src="" alt="Combat result charts">
+            <div class="results-loading" aria-live="polite">
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Calculating…</span>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <p>
+        This is an unofficial fan-made project. It is not affiliated with, sponsored by, or endorsed by the owners of the
+        StarCraft or StarCraft: Tabletop Miniatures Game trademarks.
+      </p>
+      <p>
+        Project homepage:
+        <a href="https://github.com/lgieryk/sctmgtool" target="_blank" rel="noopener noreferrer">github.com/lgieryk/sctmgtool</a>
+      </p>
+    </footer>
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

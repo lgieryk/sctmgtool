@@ -57,6 +57,12 @@ You may need to install some additional system packages:
 
     apt-get update && apt-get install python3-tk
 
+### Web interface
+The project also includes an HTML interface with a Flask backend, not intended
+to be used by regular desktop users. Refer to
+[the web module documentation](src/sctmgtool/web/README.md) for setup and usage
+instructions.
+
 ## License
 - Source code: [MIT License](LICENSE)
 - Data files in `src/sctmgtool/units/`: distributed under separate terms, see
