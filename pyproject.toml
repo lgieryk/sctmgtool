@@ -24,6 +24,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+web = [
+    "flask",
+    "PyMySQL",
+    "SQLAlchemy",
+]
 dev = [
     "pytest",
     "pytest-cov",
@@ -36,3 +41,6 @@ Homepage = "https://github.com/lgieryk/sctmgtool"
 
 [tool.ruff]
 line-length = 160
+
+[tool.setuptools.package-data]
+"sctmgtool.web" = ["static/*.html", "static/*.css", "static/*.js"]
