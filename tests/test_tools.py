@@ -1,12 +1,13 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Łukasz Gieryk
 
-from typing import NamedTuple
 from copy import deepcopy
+from typing import NamedTuple
+
 import pytest
+
+from sctmgtool.tools import ClashType, MusteredUnit, Tag, Upgrade, Weapon, process_unit_list, select_weapons
 from sctmgtool.units import ALL_UNITS
-from sctmgtool.tools import Weapon, Tag, MusteredUnit, ClashType, Upgrade
-from sctmgtool.tools import select_weapons, process_unit_list
 
 
 def muster(name: str, config=None):

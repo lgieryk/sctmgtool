@@ -2,11 +2,10 @@
 # Copyright (c) 2026 Łukasz Gieryk
 
 from unittest.mock import patch
-from sctmgtool.base import SurgeDie
+
+from sctmgtool.base import Hook, Range, Squad, SurgeDie, Unit, Upgrade
+from sctmgtool.tools import DicePool, HookContext, MusteredUnit, Tag, Weapon, WeaponBatch, roll_damage, roll_surge
 from sctmgtool.units import TERRAN_UNITS
-from sctmgtool.tools import Weapon, WeaponBatch, Tag, MusteredUnit, DicePool, HookContext
-from sctmgtool.tools import roll_damage, roll_surge
-from sctmgtool.base import Unit, Range, Squad, Upgrade, Hook
 
 
 def muster(name: str, config=None):

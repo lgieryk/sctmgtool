@@ -2,7 +2,7 @@
 # see NOTICE.txt in this directory. They are NOT covered by the project's MIT
 # License.
 
-from sctmgtool.base import Unit, Faction, Speed, Tag, Weapon, Squad, Range, Upgrade, SurgeDie, Cost
+from sctmgtool.base import Cost, Faction, Range, Speed, Squad, SurgeDie, Tag, Unit, Upgrade, Weapon
 
 _TERRAN_UNITS: tuple[Unit] = (
     Unit(
