@@ -76,11 +76,14 @@ def test_weapon():
 
 
 def test_str():
+    assert repr(Faction.Terran) == "Faction.Terran"
+
     weapon = Weapon("name", "range", Tag.Ground, 11, 22, Tag.Light, SurgeDie.D3, 33, "for", Tag.AntiEvade1)
     assert str(weapon) == "name                           range G  11D6 22+  Light            D3   DMG:33 AntiEvade1           FOR:for"
 
     s_die = SurgeDie.D3P1
     assert str(s_die) == "D3P1"
+    assert repr(s_die) == "SurgeDie.D3P1"
 
     speed = Speed(5, 6)
     assert str(speed) == "5/6"
@@ -88,7 +91,9 @@ def test_str():
     cost = Cost(11, 22, points=33)
     assert str(cost) == "11/22/33P"
 
-    assert str(Upgrade("upgrade", {}, message="message", cost=cost)) == "upgrade 11/22/33P message"
+    upgrade = Upgrade("upgrade", {}, message="message", cost=cost)
+    assert str(upgrade) == "upgrade 11/22/33P message"
+    assert repr(upgrade) == "Upgrade('upgrade', message='message', cost=Cost(small=11, large=22, points=33))"
 
     unit = Unit(Faction.Terran, "name", 1, speed, 2, 3, 4, (weapon,), (), Tag.Unique, ())
     assert str(unit) == "name SHLD:1 EVA:2+ ARM:3+ HP:4 Unique"

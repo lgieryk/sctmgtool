@@ -3,7 +3,6 @@
 
 from dataclasses import dataclass, field, fields, is_dataclass
 from enum import Enum
-import tkinter as tk
 from collections import defaultdict
 import json
 import hashlib
@@ -128,11 +127,6 @@ class RollCache(Cache):
 def tkinter_main(units: list[Unit]):
     # This code is awful. Shame on me.
 
-    class _IntVar(tk.IntVar):
-        def __init__(self, *args, extra=None, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.extra = extra
-
     @dataclass
     class _Fig:
         ax1: Axes
@@ -142,7 +136,7 @@ def tkinter_main(units: list[Unit]):
     class _UnitData:
         prototype: Unit = None
         unit_label: ctk.CTkLabel = None
-        unit_size: tk.IntVar = None
+        unit_size: ctk.IntVar = None
         radios: list[ctk.CTkRadioButton] = field(default_factory=list)
         upgrade_vars: list[ctk.CTkLabel] = field(default_factory=list)
         weapon_labels: list[ctk.CTkLabel] = field(default_factory=list)
@@ -302,7 +296,7 @@ def tkinter_main(units: list[Unit]):
     af = ctk.CTkFrame(root)
     af.pack(padx=10, pady=2, fill="x")
 
-    attacker.unit_size = _IntVar(extra="_squad_size")
+    attacker.unit_size = ctk.IntVar()
     for i in range(2):
         radio = ctk.CTkRadioButton(
             af, text=str(i), width=50, variable=attacker.unit_size, command=partial(on_upgrade_toggled, attacker, "_squad_size", attacker.unit_size)
@@ -321,7 +315,7 @@ def tkinter_main(units: list[Unit]):
     df = ctk.CTkFrame(root)
     df.pack(padx=10, pady=2, fill="x")
 
-    defender.unit_size = _IntVar(extra="_squad_size_def")
+    defender.unit_size = ctk.IntVar()
     for i in range(2):
         radio = ctk.CTkRadioButton(
             df, text=str(i), width=50, variable=defender.unit_size, command=partial(on_upgrade_toggled, defender, "_squad_size_def", defender.unit_size)
