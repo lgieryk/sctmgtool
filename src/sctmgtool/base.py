@@ -278,5 +278,12 @@ class Unit:
     tags: Tag
     upgrades: tuple[Upgrade]
 
+    def has_upgrade(self, name: str) -> bool:
+        return any(upgrade.name == name for upgrade in self.upgrades)
+
+    @property
+    def is_structure(self) -> bool:
+        return self.has_upgrade("Structure")
+
     def __str__(self):
         return f"{self.name} SHLD:{self.shield} EVA:{self.evade}+ ARM:{self.armour}+ HP:{self.hit_points} {self.tags}"
