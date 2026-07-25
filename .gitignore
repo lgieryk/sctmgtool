@@ -1,5 +1,6 @@
 .venv
 .coverage
+.vscode
 *.pyc
 src/*egg-info*
 build/*
