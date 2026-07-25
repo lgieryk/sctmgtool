@@ -92,3 +92,15 @@ def test_str():
 
     unit = Unit(Faction.Terran, "name", 1, speed, 2, 3, 4, (weapon,), (), Tag.Unique, ())
     assert str(unit) == "name SHLD:1 EVA:2+ ARM:3+ HP:4 Unique"
+
+
+def test_unit_structure_upgrade():
+    unit = Unit(Faction.Terran, "name", None, Speed(0, 0), None, 5, 8, (), (), Tag.Ground, ())
+
+    assert not unit.has_upgrade("Structure")
+    assert not unit.is_structure
+
+    unit.upgrades = (Upgrade("Structure", upgrade_type=Upgrade.Type.Other),)
+
+    assert unit.has_upgrade("Structure")
+    assert unit.is_structure

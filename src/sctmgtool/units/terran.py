@@ -255,6 +255,9 @@ def _apply_common_skills(units):
     # )
 
     # for unit in units:
+    #     if unit.is_structure:
+    #         continue
+    #
     #     unit.upgrades = (*unit.upgrades, orders)
 
     return units
