@@ -7,7 +7,6 @@ import tkinter as tk
 from collections import defaultdict
 import json
 import hashlib
-from typing import NamedTuple
 from itertools import product
 from pathlib import Path
 from functools import partial
@@ -15,13 +14,11 @@ import customtkinter as ctk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
-from matplotlib import ticker
-import numpy as np
 from platformdirs import user_data_dir
 import sctmgtool
-from sctmgtool.tools import Unit, MusteredUnit, Upgrade, ClashType, HookContext
-from sctmgtool.tools import roll_damage, select_weapons
+from sctmgtool.tools import Unit, MusteredUnit, Upgrade, ClashType
 from sctmgtool.cache import Cache
+from sctmgtool.histogram import draw_histogram_subfigure, simulate_clash
 
 ROLL_COUNT = 10000
 THREADS = 4
@@ -59,11 +56,6 @@ def save_config(config):
 
     with open(file_path, "w", encoding="utf8") as f:
         json.dump(config, f, indent=4)
-
-
-class Histogram(NamedTuple):
-    damage: list
-    kills: list
 
 
 class RollCache(Cache):
@@ -127,30 +119,7 @@ class RollCache(Cache):
 
     def compute_func(self, obj):
         attacker, defender = obj
-        entry = []
-
-        kills_limit = defender.models
-        damage_limit = defender.models * defender.hit_points
-        if defender.shield is not None:
-            damage_limit += defender.shield
-
-        ctx = HookContext(attacker, defender)
-        ctx.apply_opponent_hooks(attacker, defender)
-
-        for ct in ClashType:
-            active_batches = select_weapons(attacker, defender, ct)
-
-            damage = [sum(roll_damage(attacker, batch, defender, ctx) for batch in active_batches) for _ in range(ROLL_COUNT)]
-            damage_count = np.bincount(np.clip(damage, 0, damage_limit), minlength=damage_limit)
-            damage_percent = damage_count / damage_count.sum() * 100
-
-            kills = [defender.num_killed(dmg) for dmg in damage]
-            kills_count = np.bincount(kills, minlength=kills_limit)
-            kills_percent = kills_count / kills_count.sum() * 100
-
-            entry.append(Histogram(damage_percent, kills_percent))
-
-        return entry
+        return simulate_clash(attacker, defender, ROLL_COUNT)
 
     def obj_to_key(self, obj):
         return (obj[0].fingerprint, obj[1].fingerprint)
@@ -220,38 +189,11 @@ def tkinter_main(units: list[Unit]):
 
         hist_data = roll_cache[(mustered_atk, mustered_def)]
 
-        for data, fig, ct in zip(hist_data, subfigures, ClashType):
-            draw_histogram(data, fig, ct)
+        for clash_type, subfigure in zip(ClashType, subfigures):
+            draw_histogram_subfigure(hist_data[clash_type], subfigure.ax1, subfigure.ax2, clash_type)
 
         figure.tight_layout()
         canvas.draw_idle()
-
-    def draw_histogram(data: Histogram, fig: _Fig, clash_type: ClashType):
-        fig.ax1.clear()
-        fig.ax1.bar(np.arange(len(data.damage)), data.damage, width=1.0, alpha=0.6, color="blue", label="Damage")
-        fig.ax1.set_xticks(np.arange(len(data.damage)))
-        fig.ax1.xaxis.set_tick_params(colors="blue")
-        fig.ax1.set_xlabel("Damage", color="blue")
-        fig.ax1.set_ylabel("Probability (%)")
-        fig.ax1.set_ylim(0, 100)
-
-        if len(data.damage) == 1:
-            fig.ax1.set_xticks([0])
-        else:
-            fig.ax1.xaxis.set_major_locator(ticker.MaxNLocator(integer=True, steps=[1, 2, 5, 10]))
-
-        fig.ax2.clear()
-        fig.ax2.bar(np.arange(len(data.kills)), data.kills, width=1.0, alpha=0.6, color="red", label="Kills")
-        fig.ax2.xaxis.set_tick_params(colors="red")
-        fig.ax2.xaxis.set_label_position("top")
-        fig.ax2.set_xlabel(f"{clash_type.value} Kills", color="red")
-
-        if len(data.kills) == 1:
-            fig.ax2.set_xticks([0])
-        else:
-            fig.ax2.xaxis.set_major_locator(ticker.MaxNLocator(integer=True, steps=[1, 2, 5, 10]))
-
-        fig.ax1.set_zorder(fig.ax2.get_zorder() + 1)
 
     def build_subfigure(parent: Figure, index: int):
         ax1 = parent.add_subplot(1, 3, index + 1)
