@@ -1,4 +1,4 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Łukasz Gieryk
 
-__version__ = "0.4.1"
+__version__ = "0.4.5"
