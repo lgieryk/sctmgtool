@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Łukasz Gieryk
 
-import pickle
-from multiprocessing import Process, Manager, Lock, Event, Value
-from pathlib import Path
 import hashlib
 import logging
+import pickle
+from multiprocessing import Event, Lock, Manager, Process, Value
+from pathlib import Path
+
 import sctmgtool
+
+logger = logging.getLogger(__name__)
 
 
 class Cache:
@@ -19,16 +22,16 @@ class Cache:
         self.save_file_path = save_path / Cache.FILENAME
 
         try:
-            logging.info("Cache path: %s", self.save_file_path)
+            logger.info("Cache path: %s", self.save_file_path)
             with open(self.save_file_path, "rb") as file:
                 rev, data = pickle.load(file)
                 if rev == self.revision:
                     self.data = manager.dict(data)
                 else:
-                    logging.warning("Cache version error; starting a new one from scratch")
+                    logger.warning("Cache version error; starting a new one from scratch")
                     self.data = manager.dict()
         except (FileNotFoundError, AttributeError):
-            logging.warning("Cache access error; starting a new one from scratch")
+            logger.warning("Cache access error; starting a new one from scratch")
             self.data = manager.dict()
 
         self.lock = Lock()
@@ -53,9 +56,8 @@ class Cache:
         if self.new_inserts.value == 0:
             return
 
-        with self.lock:
-            with open(self.save_file_path, "wb") as file:
-                pickle.dump((self.revision, dict(self.data)), file)
+        with self.lock, open(self.save_file_path, "wb") as file:
+            pickle.dump((self.revision, dict(self.data)), file)
 
     def __getitem__(self, obj):
         key = self.obj_to_key(obj)

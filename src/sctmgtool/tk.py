@@ -1,23 +1,25 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Łukasz Gieryk
 
+import hashlib
+import json
+from collections import defaultdict
 from dataclasses import dataclass, field, fields, is_dataclass
 from enum import Enum
-from collections import defaultdict
-import json
-import hashlib
+from functools import partial
 from itertools import product
 from pathlib import Path
-from functools import partial
+
 import customtkinter as ctk
+from matplotlib.axes import Axes
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from matplotlib.axes import Axes
 from platformdirs import user_data_dir
+
 import sctmgtool
-from sctmgtool.tools import Unit, MusteredUnit, Upgrade, ClashType
 from sctmgtool.cache import Cache
 from sctmgtool.histogram import draw_histogram_subfigure, simulate_clash
+from sctmgtool.tools import ClashType, MusteredUnit, Unit, Upgrade
 
 ROLL_COUNT = 10000
 THREADS = 4

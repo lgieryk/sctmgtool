@@ -1,14 +1,14 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Łukasz Gieryk
 
-import logging
 import ctypes
+import logging
 import os
 from multiprocessing import freeze_support
-from sctmgtool.tools import process_unit_list
-from sctmgtool.tk import tkinter_main
-from sctmgtool.units import ALL_UNITS
 
+from sctmgtool.tk import tkinter_main
+from sctmgtool.tools import process_unit_list
+from sctmgtool.units import ALL_UNITS
 
 if __name__ == "__main__":
     if os.name == "nt":

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Łukasz Gieryk
 
-from typing import NamedTuple, Any
+from typing import Any, NamedTuple
 
 
 class RollHookArgs(NamedTuple):

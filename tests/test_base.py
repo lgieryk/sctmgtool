@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Łukasz Gieryk
 
-from sctmgtool.base import Tag, Weapon, SurgeDie, Speed, Cost, Upgrade, Unit, Faction
+from sctmgtool.base import Cost, Faction, Speed, SurgeDie, Tag, Unit, Upgrade, Weapon
 
 
 def test_tag():

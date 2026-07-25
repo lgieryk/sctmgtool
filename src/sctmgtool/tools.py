@@ -1,18 +1,21 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Łukasz Gieryk
 
-from enum import Enum
-from dataclasses import dataclass, field
-from collections import defaultdict
-from typing import NamedTuple
-import random
-import re
-import operator
 import copy
 import logging
-from sctmgtool.base import Unit, Weapon, Tag, Upgrade, Hook
-import sctmgtool.hooks as hooks
+import operator
+import random
+import re
+from collections import defaultdict
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import ClassVar, NamedTuple
 
+from sctmgtool import hooks
+from sctmgtool.base import Hook, Tag, Unit, Upgrade, Weapon
+
+logger = logging.getLogger(__name__)
 
 D6POP = (1, 2, 3, 4, 5, 6)
 
@@ -22,7 +25,7 @@ class DicePool:
         self.dice = list(dice)
 
     @staticmethod
-    def empty(_limit: int = None):
+    def empty(_limit: int | None = None):
         return DicePool([])
 
     @staticmethod
@@ -50,7 +53,7 @@ class DicePool:
 
         return _wrap
 
-    def transfer_dice_to(self, target_pool: "DicePool", pred: callable = None, up_to: int | None = None):
+    def transfer_dice_to(self, target_pool: "DicePool", pred: Callable | None = None, up_to: int | None = None):
         assert isinstance(target_pool, DicePool)
 
         if pred is None:
@@ -78,7 +81,7 @@ class DicePool:
 
 
 class Query:
-    _ops = {
+    _ops: ClassVar[dict[str, Callable]] = {
         "<": operator.lt,
         "<=": operator.le,
         ">": operator.gt,
@@ -271,11 +274,14 @@ def roll_surge(weapon: Weapon, defender: MusteredUnit):
     if not any(tags in defender.tags for tags in weapon.surge):
         return 0
     roll_params = weapon.surge_die.value
-    return sum(map(lambda x: (x + 1) // 2, random.choices(D6POP, k=roll_params.d3))) + sum(random.choices(D6POP, k=roll_params.d6)) + roll_params.add
+    return sum((value + 1) // 2 for value in random.choices(D6POP, k=roll_params.d3)) + sum(random.choices(D6POP, k=roll_params.d6)) + roll_params.add
 
 
-def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUnit, ctx: HookContext = HookContext()) -> int:
+def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUnit, ctx: HookContext | None = None) -> int:
     # pylint: disable=protected-access
+
+    if ctx is None:
+        ctx = HookContext()
 
     afp = DicePool.auto_fail_pass_predicate
 
@@ -328,9 +334,8 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
         if defender.tags & Tag.Armoured:
             dmg_per_hit = batch.weapon.tags.pierce_armoured()
         assert Tag._PierceLight not in batch.weapon.tags
-    if batch.weapon.tags & Tag._PierceLight:
-        if defender.tags & Tag.Light:
-            dmg_per_hit = batch.weapon.tags.pierce_light()
+    if batch.weapon.tags & Tag._PierceLight and defender.tags & Tag.Light:
+        dmg_per_hit = batch.weapon.tags.pierce_light()
 
     return damage_pool.size() * dmg_per_hit
 
@@ -379,7 +384,7 @@ def process_unit_list(units):
 
                 if upgrade.upgrade_type is None:
                     upgrade.upgrade_type = Upgrade.Type.Other
-                    logging.warning("Useless upgrade: %s", upgrade.name)
+                    logger.warning("Useless upgrade: %s", upgrade.name)
 
             if Upgrade.Type.Offensive in upgrade.upgrade_type and Upgrade.Type.Defensive in upgrade.upgrade_type:
                 raise RuntimeError(f"{upgrade} is both: offensive and defensive; combination not supported")

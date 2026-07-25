@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Łukasz Gieryk
 
-from enum import Flag, Enum, auto
-from typing import NamedTuple, Callable
-from dataclasses import dataclass
 import enum
+from collections.abc import Callable
+from dataclasses import dataclass
+from enum import Enum, Flag, auto
+from typing import NamedTuple
 
 # pylint: disable=invalid-name
 
@@ -74,7 +75,7 @@ class Tag(Flag):
 
     def sibling_bits(self):
         bits = 0
-        for _, member in Tag.__members__.items():
+        for member in Tag.__members__.values():
             if member.value & self.value:
                 bits |= member.value
         return bits
@@ -174,14 +175,14 @@ class Weapon:
 
     def __str__(self):
         ef = f" FOR:{self.exchange_for}" if self.exchange_for != "" else ""
-        surge = f" {str(self.surge or ''):<16} {str(self.surge_die or ''):<4}"
+        surge = f" {self.surge or ''!s:<16} {self.surge_die or ''!s:<4}"
 
         if Tag.Flying in self.target and Tag.Ground in self.target:
             tgt = "GF"
         else:
             tgt = "G " if Tag.Ground in self.target else "F "
 
-        return f"{self.name:<30} {self.range:>2} {tgt} {self.rate_of_attack}D6 {self.hit}+ {surge} DMG:{self.damage} {str(self.tags):<20}{ef}"
+        return f"{self.name:<30} {self.range:>2} {tgt} {self.rate_of_attack}D6 {self.hit}+ {surge} DMG:{self.damage} {self.tags!s:<20}{ef}"
 
 
 class Range(NamedTuple):
@@ -227,7 +228,7 @@ class Upgrade:
         Defensive = auto()
         Offensive = auto()
 
-    def __init__(self, name: str, /, apply: Callable | dict = None, *, message="", cost=None, upgrade_type=None):
+    def __init__(self, name: str, /, apply: Callable | dict | None = None, *, message="", cost=None, upgrade_type=None):
         if apply is Upgrade.activate_weapon:
 
             def wrapper(unit):
