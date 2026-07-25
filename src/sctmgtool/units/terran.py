@@ -246,19 +246,75 @@ _TERRAN_UNITS: tuple[Unit] = (
 )
 
 
-def _apply_common_skills(units):
-    # TODO: Only one weapon gains the buff, not all of them :(
-    # orders = Upgrade(
-    #     "! Orders / Jim Raynor",
-    #     message='Apply active Orders of a friendly Jim Raynor within 8" - Unit’s first used weapon gains the CRITICAL HIT (2)',
-    #     apply=lambda unit: unit.weapon("*").add_tag(Tag.CriticalHit2),
-    # )
+def apply_jim_raynors_orders(unit: Unit) -> list[Upgrade]:
+    eligible_weapons = [weapon for weapon in unit.weapons if weapon.type_letter in ("R", "E")]
+    if Tag.Biological not in unit.tags or not eligible_weapons:
+        return []
 
-    # for unit in units:
-    #     if unit.is_structure:
-    #         continue
-    #
-    #     unit.upgrades = (*unit.upgrades, orders)
+    special_tags = Tag.Sidearm | Tag.Specialist
+    has_special_weapon = any(weapon.tags & special_tags for weapon in eligible_weapons)
+    has_multiple_base_weapons_of_one_type = any(
+        sum(weapon.type_letter == type_letter and not weapon.exchange_for for weapon in eligible_weapons) > 1 for type_letter in ("R", "E")
+    )
+    use_individual_orders = has_special_weapon and has_multiple_base_weapons_of_one_type
+
+    if not use_individual_orders:
+        weapon_query = "*" if len(eligible_weapons) == len(unit.weapons) else [weapon.name for weapon in eligible_weapons]
+        return [
+            Upgrade(
+                "! Orders / Jim Raynor",
+                message='Apply active Orders of a friendly Jim Raynor within 8" - Unit’s first used weapon gains the CRITICAL HIT (2)',
+                apply=lambda mustered_unit, query=weapon_query: mustered_unit.weapon(query).add_tag(Tag.CriticalHit2),
+            )
+        ]
+
+    weapons_by_name = {weapon.name: weapon for weapon in eligible_weapons}
+    grouped_names = set()
+    weapon_groups = []
+    for weapon in eligible_weapons:
+        if weapon.name in grouped_names:
+            continue
+
+        base_weapon = weapons_by_name.get(weapon.exchange_for, weapon)
+        can_group = not (weapon.tags | base_weapon.tags) & special_tags and weapon.type_letter == base_weapon.type_letter
+        if can_group:
+            group = [
+                base_weapon,
+                *[
+                    alternative
+                    for alternative in eligible_weapons
+                    if alternative.exchange_for == base_weapon.name
+                    and alternative.type_letter == base_weapon.type_letter
+                    and not alternative.tags & special_tags
+                ],
+            ]
+        else:
+            group = [weapon]
+
+        group = [grouped_weapon for grouped_weapon in group if grouped_weapon.name not in grouped_names]
+        grouped_names.update(grouped_weapon.name for grouped_weapon in group)
+        weapon_groups.append(group)
+
+    def make_orders_upgrade(group: list[Weapon]) -> Upgrade:
+        weapon_names = [weapon.name for weapon in group]
+        return Upgrade(
+            f"! Orders / Jim Raynor / {'/'.join(weapon_names)}",
+            message='Apply active Orders of a friendly Jim Raynor within 8" - Unit’s first used weapon gains the CRITICAL HIT (2)',
+            apply=lambda mustered_unit: mustered_unit.weapon(weapon_names).add_tag(Tag.CriticalHit2),
+        )
+
+    return [make_orders_upgrade(group) for group in weapon_groups]
+
+
+def _apply_common_skills(units):
+    for unit in units:
+        if unit.is_structure:
+            continue
+
+        to_add = []
+        to_add.extend(apply_jim_raynors_orders(unit))
+
+        unit.upgrades = (*unit.upgrades, *to_add)
 
     return units
 
