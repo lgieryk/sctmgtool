@@ -7,11 +7,12 @@ import gc
 import io
 import json
 import os
+import re
 from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from flask import Flask, Response, abort, request, send_file
+from flask import Flask, Response, abort, redirect, request, send_file
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 import sctmgtool
@@ -22,6 +23,7 @@ from sctmgtool.units import ALL_UNITS
 from sctmgtool.web.cache import APP_REVISION, CHARTS_REVISION, ImageCache
 
 WEBP_QUALITY = 85
+WEBP_FILE_NAME_PATTERN = re.compile(r"[0-9a-f]{64}\.webp")
 
 
 @lru_cache(maxsize=1)
@@ -223,6 +225,18 @@ def create_flask_app(
             image_path = app.extensions["cache"].get_or_create(result_key, lambda: make_results_webp(*fingerprints))
         except ValueError:
             abort(400, description="Unknown unit or invalid squad size.")
+
+        return redirect(f"/generated/{APP_REVISION}/{CHARTS_REVISION}/{image_path.name}")
+
+    @app.get("/generated/<app_revision>/<int:charts_revision>/<file_name>")
+    def generated_image(app_revision: str, charts_revision: int, file_name: str):
+        if app_revision != APP_REVISION or charts_revision != CHARTS_REVISION or WEBP_FILE_NAME_PATTERN.fullmatch(file_name) is None:
+            abort(404)
+
+        image_path = app.extensions["cache"].image_dir / file_name
+        if not image_path.is_file():
+            abort(404)
+
         response = send_file(image_path, mimetype="image/webp", conditional=True)
         response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         return response

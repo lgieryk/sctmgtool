@@ -3,6 +3,7 @@ import gc
 import json
 import weakref
 from unittest.mock import Mock
+from urllib.parse import urlsplit
 
 import pytest
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -24,20 +25,59 @@ def test_result_image_with_relative_cache_dir(tmp_path, monkeypatch):
     monkeypatch.setattr(web_app, "make_results_webp", generate_image)
 
     application = web_app.create_flask_app(cache_dir="web-cache")
+    client = application.test_client()
     result_key = encode_result_key(["Marine", 6, 0], ["Zealot", 3, 0])
-    response = application.test_client().get(f"/api/results/{APP_REVISION}/{CHARTS_REVISION}/{result_key}")
-    cached_response = application.test_client().get(f"/api/results/{APP_REVISION}/{CHARTS_REVISION}/{result_key}")
+    response = client.get(f"/api/results/{APP_REVISION}/{CHARTS_REVISION}/{result_key}")
+    cached_response = client.get(f"/api/results/{APP_REVISION}/{CHARTS_REVISION}/{result_key}")
+    generated_response = client.get(response.headers["Location"])
     image_files = list(application.extensions["cache"].image_dir.iterdir())
+    location = urlsplit(response.headers["Location"])
 
     assert application.extensions["cache"].cache_dir == tmp_path / "web-cache"
-    assert response.status_code == 200
-    assert response.mimetype == "image/webp"
-    assert response.data == image
-    assert cached_response.status_code == 200
-    assert cached_response.data == image
+    assert response.status_code == 302
+    assert not location.scheme
+    assert not location.netloc
+    assert location.path == f"/generated/{APP_REVISION}/{CHARTS_REVISION}/{image_files[0].name}"
+    assert cached_response.status_code == 302
+    assert cached_response.headers["Location"] == response.headers["Location"]
+    assert generated_response.status_code == 200
+    assert generated_response.mimetype == "image/webp"
+    assert generated_response.data == image
+    assert generated_response.headers["Cache-Control"] == "public, max-age=31536000, immutable"
     assert generate_image.call_count == 1
     assert len(image_files) == 1
     assert image_files[0].suffix == ".webp"
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        f"/generated/{APP_REVISION}/{CHARTS_REVISION}/results.sqlite3",
+        f"/generated/{APP_REVISION}/{CHARTS_REVISION}/{'0' * 64}.webp",
+        f"/generated/{APP_REVISION}/{CHARTS_REVISION - 1}/{'0' * 64}.webp",
+        f"/generated/unknown/{CHARTS_REVISION}/{'0' * 64}.webp",
+    ],
+)
+def test_generated_image_rejects_invalid_or_missing_file(tmp_path, path):
+    application = web_app.create_flask_app(cache_dir=tmp_path)
+
+    response = application.test_client().get(path)
+
+    assert response.status_code == 404
+
+
+def test_result_redirect_keeps_api_cors_headers(tmp_path, monkeypatch):
+    monkeypatch.setattr(web_app, "make_results_webp", lambda *_: b"RIFF\x10\x00\x00\x00WEBPVP8 regression-test")
+    application = web_app.create_flask_app(cache_dir=tmp_path, allowed_origins="https://lgieryk.github.io")
+    result_key = encode_result_key(["Marine", 6, 0], ["Zealot", 3, 0])
+
+    response = application.test_client().get(
+        f"/api/results/{APP_REVISION}/{CHARTS_REVISION}/{result_key}",
+        headers={"Origin": "https://lgieryk.github.io"},
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Access-Control-Allow-Origin"] == "https://lgieryk.github.io"
 
 
 @pytest.mark.parametrize(
