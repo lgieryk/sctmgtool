@@ -66,10 +66,14 @@ def test_muster_weapons():
         Weapon("Default", 10, Tag.Ground, 0, 0, None, None, 1),
         Weapon("Sidearm", 10, Tag.Ground, 0, 0, None, None, 1, tags=Tag.Sidearm),
         Weapon("Alternative", 10, Tag.Ground, 0, 0, None, None, 1, exchange_for="Default"),
+        Weapon("Other Alternative", 10, Tag.Ground, 0, 0, None, None, 1, exchange_for="Default"),
         Weapon("Unselected", 10, Tag.Ground, 0, 0, None, None, 1),  # exchange_for intentionally omitted
         Weapon("Melee", "E", Tag.Ground, 0, 0, None, None, 1),
     )
-    proto_marine.upgrades = (Upgrade("Alternative", Upgrade.activate_weapon),)
+    proto_marine.upgrades = (
+        Upgrade("Alternative", Upgrade.activate_weapon),
+        Upgrade("Other Alternative", Upgrade.activate_weapon),
+    )
 
     def is_selected(unit: MusteredUnit, name: str):
         return any(batch.weapon.name == name for batch in unit.weapon_batches)
@@ -79,6 +83,10 @@ def test_muster_weapons():
     assert not is_selected(marine, "Default")
     assert is_selected(marine, "Alternative")
     assert not is_selected(marine, "AlternativeBad")
+
+    marine = MusteredUnit.make(proto_marine, {"Alternative": True, "Other Alternative": True})
+    assert is_selected(marine, "Alternative")
+    assert not is_selected(marine, "Other Alternative")
 
     marine = MusteredUnit.make(proto_marine, {})
     assert is_selected(marine, "Melee")
