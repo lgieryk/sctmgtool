@@ -21,6 +21,8 @@ from sctmgtool.tools import MusteredUnit, process_unit_list
 from sctmgtool.units import ALL_UNITS
 from sctmgtool.web.cache import APP_REVISION, CHARTS_REVISION, ImageCache
 
+WEBP_QUALITY = 85
+
 
 @lru_cache(maxsize=1)
 def get_units():
@@ -114,13 +116,13 @@ def make_unit_from_fingerprint(fingerprint: list, is_attacker: bool) -> Mustered
     return MusteredUnit.make(prototype, config, is_attacker)
 
 
-def render_results_png(histograms) -> bytes:
+def render_results_webp(histograms) -> bytes:
     figure = draw_histograms(histograms, {"figsize": (15, 3), "dpi": 72})
 
     output = io.BytesIO()
     canvas = FigureCanvasAgg(figure)
     try:
-        canvas.print_png(output)
+        canvas.print_webp(output, pil_kwargs={"quality": WEBP_QUALITY})
         return output.getvalue()
     finally:
         figure.clear()
@@ -128,12 +130,12 @@ def render_results_png(histograms) -> bytes:
         canvas.figure = None
 
 
-def make_results_png(attacker_fingerprint: list, defender_fingerprint: list) -> bytes:
+def make_results_webp(attacker_fingerprint: list, defender_fingerprint: list) -> bytes:
     attacker = make_unit_from_fingerprint(attacker_fingerprint, True)
     defender = make_unit_from_fingerprint(defender_fingerprint, False)
     histograms = simulate_clash(attacker, defender)
     try:
-        return render_results_png(histograms)
+        return render_results_webp(histograms)
     finally:
         gc.collect()
 
@@ -218,10 +220,10 @@ def create_flask_app(
             abort(400, description="Invalid combat result key.")
 
         try:
-            image_path = app.extensions["cache"].get_or_create(result_key, lambda: make_results_png(*fingerprints))
+            image_path = app.extensions["cache"].get_or_create(result_key, lambda: make_results_webp(*fingerprints))
         except ValueError:
             abort(400, description="Unknown unit or invalid squad size.")
-        response = send_file(image_path, mimetype="image/png", conditional=True)
+        response = send_file(image_path, mimetype="image/webp", conditional=True)
         response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         return response
 

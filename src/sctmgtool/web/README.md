@@ -42,6 +42,12 @@ The same values can be provided through environment variables:
 - `SCTMGTOOL_WEB_CACHE_DIR`;
 - `SCTMGTOOL_WEB_DATABASE_URL`.
 
+Generated charts are stored as lossy WebP images at quality 85 under
+`<cache-dir>/<app-revision>/<charts-revision>/<sha256>.webp`. The database
+maps result keys to these immutable files. A format change increments the
+charts revision and creates a separate directory; older revision directories
+are left intact for rollback and controlled cache cleanup.
+
 ## Cross-origin access
 
 The static frontend can be hosted on a different origin, such as GitHub Pages.
