@@ -2,7 +2,10 @@ import base64
 import gc
 import json
 import weakref
+from unittest.mock import Mock
 
+import pytest
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 
 from sctmgtool.web import app as web_app
@@ -16,17 +19,42 @@ def encode_result_key(attacker, defender):
 
 def test_result_image_with_relative_cache_dir(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    image = b"\x89PNG\r\n\x1a\nregression-test"
-    monkeypatch.setattr(web_app, "make_results_png", lambda *_: image)
+    image = b"RIFF\x10\x00\x00\x00WEBPVP8 regression-test"
+    generate_image = Mock(return_value=image)
+    monkeypatch.setattr(web_app, "make_results_webp", generate_image)
 
     application = web_app.create_flask_app(cache_dir="web-cache")
     result_key = encode_result_key(["Marine", 6, 0], ["Zealot", 3, 0])
     response = application.test_client().get(f"/api/results/{APP_REVISION}/{CHARTS_REVISION}/{result_key}")
+    cached_response = application.test_client().get(f"/api/results/{APP_REVISION}/{CHARTS_REVISION}/{result_key}")
+    image_files = list(application.extensions["cache"].image_dir.iterdir())
 
     assert application.extensions["cache"].cache_dir == tmp_path / "web-cache"
     assert response.status_code == 200
-    assert response.mimetype == "image/png"
+    assert response.mimetype == "image/webp"
     assert response.data == image
+    assert cached_response.status_code == 200
+    assert cached_response.data == image
+    assert generate_image.call_count == 1
+    assert len(image_files) == 1
+    assert image_files[0].suffix == ".webp"
+
+
+@pytest.mark.parametrize(
+    ("app_revision", "charts_revision"),
+    [
+        (APP_REVISION, CHARTS_REVISION - 1),
+        (APP_REVISION, CHARTS_REVISION + 1),
+        ("unknown", CHARTS_REVISION),
+    ],
+)
+def test_result_image_rejects_old_or_unknown_revision(tmp_path, app_revision, charts_revision):
+    application = web_app.create_flask_app(cache_dir=tmp_path)
+    result_key = encode_result_key(["Marine", 6, 0], ["Zealot", 3, 0])
+
+    response = application.test_client().get(f"/api/results/{app_revision}/{charts_revision}/{result_key}")
+
+    assert response.status_code == 404
 
 
 def test_cors_allows_configured_origin_from_environment(tmp_path, monkeypatch):
@@ -96,8 +124,10 @@ def test_invalid_cors_origin_is_rejected(tmp_path):
         raise AssertionError("Invalid CORS origin was accepted.")
 
 
-def test_make_results_png_releases_figure_without_garbage_collection(monkeypatch):
+def test_make_results_webp_uses_quality_85_and_releases_figure_without_garbage_collection(monkeypatch):
     figure_references = []
+    webp_options = []
+    original_print_webp = FigureCanvasAgg.print_webp
 
     def draw_test_figure(*_):
         figure = Figure()
@@ -105,15 +135,22 @@ def test_make_results_png_releases_figure_without_garbage_collection(monkeypatch
         figure_references.append(weakref.ref(figure))
         return figure
 
+    def capture_print_webp(canvas, output, *, pil_kwargs):
+        webp_options.append(pil_kwargs)
+        return original_print_webp(canvas, output, pil_kwargs=pil_kwargs)
+
     monkeypatch.setattr(web_app, "make_unit_from_fingerprint", lambda *_: object())
     monkeypatch.setattr(web_app, "simulate_clash", lambda *_: {})
     monkeypatch.setattr(web_app, "draw_histograms", draw_test_figure)
+    monkeypatch.setattr(FigureCanvasAgg, "print_webp", capture_print_webp)
 
     gc.collect()
     gc.disable()
     try:
-        image = web_app.make_results_png(["attacker"], ["defender"])
-        assert image.startswith(b"\x89PNG\r\n\x1a\n")
+        image = web_app.make_results_webp(["attacker"], ["defender"])
+        assert image.startswith(b"RIFF")
+        assert image[8:12] == b"WEBP"
+        assert webp_options == [{"quality": 85}]
         assert figure_references[0]() is None
     finally:
         gc.enable()

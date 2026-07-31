@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 import sctmgtool
 
 APP_REVISION = sctmgtool.__version__
-CHARTS_REVISION = 2
+CHARTS_REVISION = 3
 CACHE_REVISION = f"{APP_REVISION}/{CHARTS_REVISION}"
 
 
@@ -37,7 +37,7 @@ class ImageCache:
 
     def _file_name(self, result_key: str) -> str:
         cache_key = self._database_key(result_key)
-        return f"{hashlib.sha256(cache_key.encode('utf-8')).hexdigest()}.png"
+        return f"{hashlib.sha256(cache_key.encode('utf-8')).hexdigest()}.webp"
 
     def _find_file(self, result_key: str) -> Path | None:
         with self.engine.connect() as connection:
