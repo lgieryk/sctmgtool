@@ -220,7 +220,13 @@ class MusteredUnit(Unit):
 
         if w.exchange_for != "":
             batch = self.batch(w.exchange_for)
-            assert batch is not None
+            if batch is None:
+                already_exchanged = any(active.weapon.exchange_for == w.exchange_for for active in self.weapon_batches)
+                if already_exchanged:
+                    return
+
+                raise RuntimeError(f"Missing weapon batch: {w.exchange_for}")
+
             count = 1 if w.tags & Tag.Specialist else batch.model_num
 
             if batch.model_num > count:
