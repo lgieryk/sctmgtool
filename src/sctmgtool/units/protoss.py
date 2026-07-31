@@ -212,8 +212,8 @@ def _apply_common_skills(units):
 
     psionic_presence = Upgrade(
         "! Psionic Presence / Adept",
-        message="Apply PP of a friendly Adept's Shade token within 4\" - All weapons gain PRECISION (1)",
-        apply=lambda unit: unit.weapon("*").add_tag(Tag.Precision1),
+        message="Apply PP of a friendly Adept's Shade token within 4\" - All Ranged and Close Combat weapons gain PRECISION (1)",
+        apply=lambda unit: unit.weapon("@type_letter!=C").add_tag(Tag.Precision1),
     )
 
     for unit in units:
