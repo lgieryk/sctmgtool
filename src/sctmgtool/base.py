@@ -265,6 +265,13 @@ class Upgrade:
     def __str__(self):
         return f"{self.name} {self.cost or '-'} {self.message}"
 
+    def point_cost(self, large_squad: bool = False) -> int:
+        if self.cost is None:
+            return 0
+        if large_squad and self.cost.large:
+            return self.cost.large
+        return self.cost.small
+
     def __repr__(self):
         return f"Upgrade({self.name!r}, message={self.message!r}, cost={self.cost!r})"
 

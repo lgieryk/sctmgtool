@@ -66,6 +66,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     return savedSquad ? savedSquad.models.max : unit.squads[0].models.max;
   }
 
+  function getConfiguredSquad(unit, role) {
+    const squadSize = getConfiguredSquadSize(unit, role);
+    return unit.squads.find((squad) => squad.models.max === squadSize);
+  }
+
+  function getUnitPointCost(unit, role) {
+    const upgradeType = role === "attacker" ? "offensive" : "defensive";
+    const squad = getConfiguredSquad(unit, role);
+    const pointCostKey = unit.squads.indexOf(squad) > 0 ? "large" : "small";
+    const upgradePoints = unit.upgrades.reduce((total, upgrade) => {
+      const isActive = upgrade.type.includes(upgradeType) && getSavedUpgrade(role, unit.name, upgrade.summary);
+      return isActive ? total + upgrade.pointCost[pointCostKey] : total;
+    }, 0);
+
+    return squad.points + upgradePoints;
+  }
+
   function getFingerprint(unit, role) {
     const upgradeType = role === "attacker" ? "offensive" : "defensive";
     const configuration = unit.upgrades.reduce((value, upgrade) => {
@@ -197,7 +214,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function updateUnitPanel(unit, summary, upgrades, radioName, role, onUpgradeChange) {
-    summary.textContent = unit.summary;
+    summary.textContent = `${unit.summary} (${getUnitPointCost(unit, role)} PTS)`;
     updateUpgrades(unit, upgrades, role, onUpgradeChange);
     updateSquadSizeRadios(unit, radioName, role);
   }

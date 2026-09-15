@@ -140,6 +140,12 @@ class MusteredUnit(Unit):
     evade_reroll: str = ""
     fingerprint: Fingerprint = None
 
+    def __str__(self):
+        squad_index, squad = next((index, squad) for index, squad in enumerate(self.squad) if squad.models.start <= self.models <= squad.models.stop)
+        large_squad = squad_index > 0
+        upgrade_points = sum(upgrade.point_cost(large_squad) for upgrade in self.upgrades)
+        return f"{super().__str__()} ({squad.points + upgrade_points} PTS)"
+
     def weapon(self, query: list | str):
         return Query(self.weapons, query)
 

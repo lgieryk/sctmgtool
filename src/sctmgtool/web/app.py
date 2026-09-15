@@ -56,6 +56,10 @@ def serialize_upgrade(upgrade, index):
         "summary": str(upgrade),
         "activatesWeapon": upgrade.name if upgrade.message == "Upgrade weapon" else None,
         "fingerprintIndex": index,
+        "pointCost": {
+            "small": upgrade.point_cost(),
+            "large": upgrade.point_cost(large_squad=True),
+        },
         "type": upgrade_types,
     }
 
