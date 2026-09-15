@@ -2,12 +2,15 @@
 # see NOTICE.txt in this directory. They are NOT covered by the project's MIT
 # License.
 
-from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, SurgeDie, Tag, Unit, Upgrade, Weapon
+from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
 
 _PROTOSS_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Protoss,
         name="Adept",
+        unit_type=UnitType.Core,
+        size=2,
+        keywords=(),
         shield=2,
         speed=Speed(5, 8),
         evade=5,
@@ -41,6 +44,9 @@ _PROTOSS_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Protoss,
         name="Artanis",
+        unit_type=UnitType.Hero,
+        size=2,
+        keywords=(),
         shield=4,
         speed=Speed(7, 7),
         evade=5,
@@ -65,6 +71,9 @@ _PROTOSS_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Protoss,
         name="Praetor Guard (Zealot)",
+        unit_type=UnitType.Elite,
+        size=2,
+        keywords=("Khalai",),
         shield=3,
         speed=Speed(4, 7),
         evade=5,
@@ -102,6 +111,9 @@ _PROTOSS_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Protoss,
         name="Pylon",
+        unit_type=UnitType.Other,
+        size=3,
+        keywords=("Khalai",),
         shield=2,
         speed=Speed(0, 0),
         evade=None,
@@ -119,6 +131,9 @@ _PROTOSS_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Protoss,
         name="Sentry",
+        unit_type=UnitType.Support,
+        size=1,
+        keywords=(),
         shield=2,
         speed=Speed(4, 7),
         evade=6,
@@ -141,6 +156,9 @@ _PROTOSS_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Protoss,
         name="Stalker",
+        unit_type=UnitType.Elite,
+        size=3,
+        keywords=(),
         shield=3,
         speed=Speed(4, 8),
         evade=6,
@@ -165,6 +183,9 @@ _PROTOSS_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Protoss,
         name="Zealot",
+        unit_type=UnitType.Core,
+        size=2,
+        keywords=(),
         shield=3,
         speed=Speed(4, 7),
         evade=5,

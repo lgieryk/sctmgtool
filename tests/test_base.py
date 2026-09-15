@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Łukasz Gieryk
 
-from sctmgtool.base import Cost, Faction, Speed, SurgeDie, Tag, Unit, Upgrade, Weapon
+from sctmgtool.base import Cost, Faction, Speed, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
 
 
 def test_tag():
@@ -77,6 +77,7 @@ def test_weapon():
 
 def test_str():
     assert repr(Faction.Terran) == "Faction.Terran"
+    assert UnitType.Core.value == "Core"
 
     weapon = Weapon("name", "range", Tag.Ground, 11, 22, Tag.Light, SurgeDie.D3, 33, "for", Tag.AntiEvade1)
     assert str(weapon) == "name                           range G  11D6 22+  Light            D3   DMG:33 AntiEvade1           FOR:for"
@@ -95,12 +96,12 @@ def test_str():
     assert str(upgrade) == "upgrade 11/22/33P message"
     assert repr(upgrade) == "Upgrade('upgrade', message='message', cost=Cost(small=11, large=22, points=33))"
 
-    unit = Unit(Faction.Terran, "name", 1, speed, 2, 3, 4, (weapon,), (), Tag.Unique, ())
+    unit = Unit(Faction.Terran, "name", UnitType.Core, 2, (), 1, speed, 2, 3, 4, (weapon,), (), Tag.Unique, ())
     assert str(unit) == "name SHLD:1 EVA:2+ ARM:3+ HP:4 Unique"
 
 
 def test_unit_structure_upgrade():
-    unit = Unit(Faction.Terran, "name", None, Speed(0, 0), None, 5, 8, (), (), Tag.Ground, ())
+    unit = Unit(Faction.Terran, "name", UnitType.Other, None, (), None, Speed(0, 0), None, 5, 8, (), (), Tag.Ground, ())
 
     assert not unit.has_upgrade("Structure")
     assert not unit.is_structure

@@ -2,12 +2,15 @@
 # see NOTICE.txt in this directory. They are NOT covered by the project's MIT
 # License.
 
-from sctmgtool.base import Cost, Faction, Range, Speed, Squad, SurgeDie, Tag, Unit, Upgrade, Weapon
+from sctmgtool.base import Cost, Faction, Range, Speed, Squad, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
 
 _TERRAN_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Terran,
         name="Marine",
+        unit_type=UnitType.Core,
+        size=2,
+        keywords=(),
         shield=None,
         speed=Speed(4, 7),
         evade=5,
@@ -59,6 +62,9 @@ _TERRAN_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Terran,
         name="Goliath",
+        unit_type=UnitType.Elite,
+        size=3,
+        keywords=(),
         shield=None,
         speed=Speed(7, 7),
         evade=None,
@@ -110,6 +116,9 @@ _TERRAN_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Terran,
         name="Marauder",
+        unit_type=UnitType.Core,
+        size=2,
+        keywords=(),
         shield=None,
         speed=Speed(4, 7),
         evade=6,
@@ -147,6 +156,9 @@ _TERRAN_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Terran,
         name="Jim Raynor",
+        unit_type=UnitType.Hero,
+        size=2,
+        keywords=(),
         shield=None,
         speed=Speed(7, 7),
         evade=5,
@@ -171,6 +183,9 @@ _TERRAN_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Terran,
         name="Medic",
+        unit_type=UnitType.Support,
+        size=2,
+        keywords=(),
         shield=None,
         speed=Speed(4, 7),
         evade=5,
@@ -192,6 +207,9 @@ _TERRAN_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Terran,
         name="Point Defense Drone",
+        unit_type=UnitType.Other,
+        size=None,
+        keywords=("Raynor's Raiders",),
         shield=None,
         speed=Speed(0, 0),
         evade=6,
@@ -209,6 +227,9 @@ _TERRAN_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Terran,
         name="Raynor's Raider (Marine)",
+        unit_type=UnitType.Core,
+        size=2,
+        keywords=("Raynor's Raiders",),
         shield=None,
         speed=Speed(unit=4, model=7),
         evade=5,
