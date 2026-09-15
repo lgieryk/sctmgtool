@@ -19,6 +19,14 @@ class Faction(Flag):
         return str(self)
 
 
+class UnitType(Enum):
+    Core = "Core"
+    Elite = "Elite"
+    Hero = "Hero"
+    Support = "Support"
+    Other = "Other"
+
+
 class Tag(Flag):
     # fmt: off
     _None           = 0b0000000000000000000000000000000000000000000000
@@ -269,6 +277,9 @@ class Upgrade:
 class Unit:
     faction: Faction
     name: str
+    unit_type: UnitType
+    size: int | None
+    keywords: tuple[str, ...]
     shield: int
     speed: Speed
     evade: int

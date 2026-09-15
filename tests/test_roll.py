@@ -3,7 +3,7 @@
 
 from unittest.mock import patch
 
-from sctmgtool.base import Hook, Range, Squad, SurgeDie, Unit, Upgrade
+from sctmgtool.base import Hook, Range, Squad, SurgeDie, Unit, UnitType, Upgrade
 from sctmgtool.tools import DicePool, HookContext, MusteredUnit, Tag, Weapon, WeaponBatch, roll_damage, roll_surge
 from sctmgtool.units import TERRAN_UNITS
 
@@ -223,6 +223,9 @@ def test_hooks():
     prototype = Unit(
         faction=None,
         name="Unit",
+        unit_type=UnitType.Core,
+        size=1,
+        keywords=(),
         shield=None,
         speed=None,
         evade=6,

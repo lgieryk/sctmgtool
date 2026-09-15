@@ -2,12 +2,15 @@
 # see NOTICE.txt in this directory. They are NOT covered by the project's MIT
 # License.
 
-from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, SurgeDie, Tag, Unit, Upgrade, Weapon
+from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
 
 ZERG_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Zerg,
         name="Corpser (Roach)",
+        unit_type=UnitType.Core,
+        size=2,
+        keywords=(),
         shield=None,
         speed=Speed(4, 7),
         evade=5,
@@ -38,6 +41,9 @@ ZERG_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Zerg,
         name="Hydralisk",
+        unit_type=UnitType.Elite,
+        size=2,
+        keywords=(),
         shield=None,
         speed=Speed(4, 8),
         evade=5,
@@ -77,6 +83,9 @@ ZERG_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Zerg,
         name="Kerrigan",
+        unit_type=UnitType.Hero,
+        size=2,
+        keywords=(),
         shield=None,
         speed=Speed(7, 7),
         evade=6,
@@ -104,6 +113,9 @@ ZERG_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Zerg,
         name="Kerrigan Swarm Raptor (Zergling)",
+        unit_type=UnitType.Elite,
+        size=1,
+        keywords=("Kerrigan's Swarm",),
         shield=None,
         speed=Speed(5, 9),
         evade=4,
@@ -130,6 +142,9 @@ ZERG_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Zerg,
         name="Omega Worm",
+        unit_type=UnitType.Other,
+        size=3,
+        keywords=("Kerrigan's Swarm",),
         shield=None,
         speed=Speed(0, 0),
         evade=None,
@@ -148,6 +163,9 @@ ZERG_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Zerg,
         name="Queen",
+        unit_type=UnitType.Support,
+        size=3,
+        keywords=(),
         shield=None,
         speed=Speed(4, 4),
         evade=None,
@@ -175,6 +193,9 @@ ZERG_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Zerg,
         name="Raptor (Zergling)",
+        unit_type=UnitType.Elite,
+        size=1,
+        keywords=(),
         shield=None,
         speed=Speed(5, 9),
         evade=4,
@@ -213,6 +234,9 @@ ZERG_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Zerg,
         name="Roach",
+        unit_type=UnitType.Core,
+        size=2,
+        keywords=(),
         shield=None,
         speed=Speed(4, 7),
         evade=5,
@@ -242,6 +266,9 @@ ZERG_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Zerg,
         name="Roachling",
+        unit_type=UnitType.Other,
+        size=1,
+        keywords=(),
         shield=None,
         speed=Speed(4, 7),
         evade=6,
@@ -255,6 +282,9 @@ ZERG_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Zerg,
         name="Swarmling (Zergling)",
+        unit_type=UnitType.Core,
+        size=1,
+        keywords=(),
         shield=None,
         speed=Speed(4, 8),
         evade=5,
@@ -276,6 +306,9 @@ ZERG_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Zerg,
         name="Vile (Roach)",
+        unit_type=UnitType.Core,
+        size=2,
+        keywords=(),
         shield=None,
         speed=Speed(4, 7),
         evade=5,
@@ -312,6 +345,9 @@ ZERG_UNITS: tuple[Unit] = (
     Unit(
         faction=Faction.Zerg,
         name="Zergling",
+        unit_type=UnitType.Core,
+        size=1,
+        keywords=(),
         shield=None,
         speed=Speed(4, 8),
         evade=4,
