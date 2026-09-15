@@ -95,6 +95,10 @@ def test_str():
     upgrade = Upgrade("upgrade", {}, message="message", cost=cost)
     assert str(upgrade) == "upgrade 11/22/33P message"
     assert repr(upgrade) == "Upgrade('upgrade', message='message', cost=Cost(small=11, large=22, points=33))"
+    assert upgrade.point_cost() == 11
+    assert upgrade.point_cost(large_squad=True) == 22
+    assert Upgrade("same cost", {}, cost=Cost(11)).point_cost(large_squad=True) == 11
+    assert Upgrade("free", {}).point_cost() == 0
 
     unit = Unit(Faction.Terran, "name", UnitType.Core, 2, (), 1, speed, 2, 3, 4, (weapon,), (), Tag.Unique, ())
     assert str(unit) == "name SHLD:1 EVA:2+ ARM:3+ HP:4 Unique"

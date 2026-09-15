@@ -127,6 +127,18 @@ def test_cors_does_not_affect_request_without_origin(tmp_path):
     assert "Access-Control-Allow-Origin" not in response.headers
 
 
+def test_units_api_serializes_upgrade_point_costs(tmp_path):
+    application = web_app.create_flask_app(cache_dir=tmp_path)
+
+    response = application.test_client().get("/api/units")
+    marine = next(unit for unit in response.json["units"] if unit["name"] == "Marine")
+    combat_shield = next(upgrade for upgrade in marine["upgrades"] if upgrade["summary"].startswith("Combat Shield "))
+    agg_12 = next(upgrade for upgrade in marine["upgrades"] if upgrade["summary"].startswith("AGG-12 "))
+
+    assert combat_shield["pointCost"] == {"small": 20, "large": 30}
+    assert agg_12["pointCost"] == {"small": 10, "large": 10}
+
+
 def test_cors_is_added_to_api_error(tmp_path):
     application = web_app.create_flask_app(cache_dir=tmp_path, allowed_origins="https://lgieryk.github.io")
 
