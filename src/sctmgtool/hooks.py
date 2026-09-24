@@ -19,5 +19,10 @@ class PoolHookArgs(NamedTuple):
 
 
 @dataclass
+class ArmourHookArgs:
+    value: int
+
+
+@dataclass
 class DamageHookArgs:
     value: int
