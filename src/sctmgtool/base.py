@@ -239,6 +239,7 @@ class Hook(Enum):
     ModifyOwner = auto()
     ModifyOpponent = auto()
     RollPoolsInitiated = auto()
+    ModifyDamage = auto()
 
 
 class Upgrade:
