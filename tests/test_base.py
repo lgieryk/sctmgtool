@@ -78,6 +78,11 @@ def test_weapon():
     w.debuff_hit(3)
     assert w.hit == 6  # As above
 
+    automatic_hit = Weapon("Automatic", 0, Tag.Ground, 1, "!", None, None, 1)
+    automatic_hit.buff_hit(1)
+    automatic_hit.debuff_hit(1)
+    assert automatic_hit.hit == "!"
+
 
 def test_str():
     assert repr(Faction.Terran) == "Faction.Terran"
@@ -85,6 +90,10 @@ def test_str():
 
     weapon = Weapon("name", "range", Tag.Ground, 11, 22, Tag.Light, SurgeDie.D3, 33, "for", Tag.AntiEvade1)
     assert str(weapon) == "name                           range G  11D6 22+  Light            D3   DMG:33 AntiEvade1           FOR:for"
+
+    automatic_hit = Weapon("automatic", 12, Tag.Ground, 5, "!", None, None, 1)
+    assert "5D6 !   " in str(automatic_hit)
+    assert "!+" not in str(automatic_hit)
 
     s_die = SurgeDie.D3P1
     assert str(s_die) == "D3P1"

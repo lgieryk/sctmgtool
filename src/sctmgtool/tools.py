@@ -323,8 +323,11 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
     ctx.call_hooks(Hook.RollPoolsInitiated, hooks.RollHookArgs(attacker, batch, defender), pha)
 
     # 1. Roll to hit
-    attack_pool.roll()
-    attack_pool.transfer_dice_to(armour_pool, afp(lambda x: x >= batch.weapon.hit))
+    if batch.weapon.hit == "!":
+        attack_pool.transfer_dice_to(armour_pool)
+    else:
+        attack_pool.roll()
+        attack_pool.transfer_dice_to(armour_pool, afp(lambda x: x >= batch.weapon.hit))
 
     armour_bypass = DicePool.empty()
 
