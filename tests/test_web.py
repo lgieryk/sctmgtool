@@ -38,6 +38,18 @@ def test_frontend_includes_shareable_configuration_support(tmp_path):
     assert b"allowedConfigurationMask" in script.data
 
 
+def test_frontend_loads_configured_unit_display_from_backend(tmp_path):
+    application = web_app.create_flask_app(cache_dir=tmp_path)
+
+    script = application.test_client().get("/app.js")
+
+    assert script.status_code == 200
+    assert b"/api/configurations/" in script.data
+    assert b"AbortController" in script.data
+    assert b"getAttackerWeaponBatches" not in script.data
+    assert b"activatesWeapon" not in script.data
+
+
 @pytest.mark.parametrize(
     "result_key",
     [
@@ -200,6 +212,40 @@ def test_units_api_serializes_upgrade_point_costs(tmp_path):
 
     assert combat_shield["pointCost"] == {"small": 20, "large": 30}
     assert agg_12["pointCost"] == {"small": 10, "large": 10}
+
+
+def test_configured_units_api_returns_backend_weapon_loadout(tmp_path):
+    application = web_app.create_flask_app(cache_dir=tmp_path)
+    ravager = next(unit for unit in web_app.get_units() if unit.name == "Ravager")
+    corrosive_bile_index = next(index for index, upgrade in enumerate(ravager.upgrades) if upgrade.name == "! Corrosive Bile (2)")
+    result_key = encode_result_key(["Ravager", 1, 1 << corrosive_bile_index], ["Zealot", 3, 0])
+
+    response = application.test_client().get(f"/api/configurations/{APP_REVISION}/{result_key}")
+    plasma_discharge = next(weapon for weapon in response.json["attacker"]["weapons"] if "Plasma Discharge" in weapon["text"])
+    corrosive_bile = next(weapon for weapon in response.json["attacker"]["weapons"] if "! Corrosive Bile" in weapon["text"])
+
+    assert response.status_code == 200
+    assert response.headers["Cache-Control"] == "public, max-age=31536000, immutable"
+    assert response.json["attacker"]["summary"].startswith("Ravager SHLD:None EVA:5+ ARM:5+ HP:9 SIZ:3 ")
+    assert plasma_discharge["active"] is False
+    assert corrosive_bile["active"] is True
+    assert response.json["defender"]["summary"].startswith("Zealot SHLD:3 EVA:5+ ARM:5+ HP:4 SIZ:2 ")
+
+
+@pytest.mark.parametrize(
+    ("app_revision", "result_key", "expected_status"),
+    [
+        (APP_REVISION, "invalid", 400),
+        (APP_REVISION, encode_result_key(["Marine", 6, 1], ["Zealot", 3, 0]), 400),
+        ("unknown", encode_result_key(["Marine", 6, 0], ["Zealot", 3, 0]), 404),
+    ],
+)
+def test_configured_units_api_rejects_invalid_key_or_revision(tmp_path, app_revision, result_key, expected_status):
+    application = web_app.create_flask_app(cache_dir=tmp_path)
+
+    response = application.test_client().get(f"/api/configurations/{app_revision}/{result_key}")
+
+    assert response.status_code == expected_status
 
 
 def test_cors_is_added_to_api_error(tmp_path):
