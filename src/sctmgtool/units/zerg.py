@@ -4,7 +4,7 @@
 
 from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
 
-ZERG_UNITS: tuple[Unit] = (
+ZERG_UNITS: tuple[Unit, ...] = (
     Unit(
         faction=Faction.Zerg,
         name="Corpser (Roach)",

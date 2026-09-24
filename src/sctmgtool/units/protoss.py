@@ -4,7 +4,7 @@
 
 from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
 
-_PROTOSS_UNITS: tuple[Unit] = (
+_PROTOSS_UNITS: tuple[Unit, ...] = (
     Unit(
         faction=Faction.Protoss,
         name="Adept",
