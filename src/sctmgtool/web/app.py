@@ -3,6 +3,7 @@
 
 import argparse
 import base64
+import binascii
 import gc
 import io
 import json
@@ -24,6 +25,8 @@ from sctmgtool.web.cache import APP_REVISION, CHARTS_REVISION, ImageCache
 
 WEBP_QUALITY = 85
 WEBP_FILE_NAME_PATTERN = re.compile(r"[0-9a-f]{64}\.webp")
+MAX_RESULT_KEY_LENGTH = 512
+MAX_CONFIGURATION = 0x7FFFFFFF
 
 
 @lru_cache(maxsize=1)
@@ -92,23 +95,36 @@ def serialize_unit(unit):
 
 
 def parse_result_key(result_key: str):
+    if not result_key or len(result_key) > MAX_RESULT_KEY_LENGTH:
+        return None
+
     try:
         padding = "=" * (-len(result_key) % 4)
-        attacker, defender = json.loads(base64.urlsafe_b64decode(result_key + padding).decode("utf-8"))
-    except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+        decoded = base64.b64decode((result_key + padding).encode("ascii"), altchars=b"-_", validate=True)
+        payload = json.loads(decoded.decode("utf-8"))
+    except (binascii.Error, UnicodeEncodeError, UnicodeDecodeError, json.JSONDecodeError, ValueError):
+        return None
+
+    if not isinstance(payload, list) or len(payload) != 2:
         return None
 
     if not all(
-        isinstance(fingerprint, list)
+        type(fingerprint) is list
         and len(fingerprint) == 3
-        and isinstance(fingerprint[0], str)
-        and isinstance(fingerprint[1], int)
-        and isinstance(fingerprint[2], int)
-        for fingerprint in (attacker, defender)
+        and type(fingerprint[0]) is str
+        and type(fingerprint[1]) is int
+        and type(fingerprint[2]) is int
+        and 0 <= fingerprint[2] <= MAX_CONFIGURATION
+        for fingerprint in payload
     ):
         return None
 
-    return attacker, defender
+    return payload[0], payload[1]
+
+
+def encode_result_key(attacker_fingerprint, defender_fingerprint) -> str:
+    payload = json.dumps([list(attacker_fingerprint), list(defender_fingerprint)], ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
 
 
 def make_unit_from_fingerprint(fingerprint: list, is_attacker: bool) -> MusteredUnit:
@@ -120,6 +136,12 @@ def make_unit_from_fingerprint(fingerprint: list, is_attacker: bool) -> Mustered
     config = {"_squad_size" if is_attacker else "_squad_size_def": squad_size}
     config.update({upgrade.name: bool(configuration & (1 << index)) for index, upgrade in enumerate(prototype.upgrades)})
     return MusteredUnit.make(prototype, config, is_attacker)
+
+
+def canonicalize_fingerprints(fingerprints: tuple[list, list]):
+    attacker = make_unit_from_fingerprint(fingerprints[0], True)
+    defender = make_unit_from_fingerprint(fingerprints[1], False)
+    return attacker.fingerprint, defender.fingerprint
 
 
 def render_results_webp(histograms) -> bytes:
@@ -226,10 +248,15 @@ def create_flask_app(
             abort(400, description="Invalid combat result key.")
 
         try:
-            image_path = app.extensions["cache"].get_or_create(result_key, lambda: make_results_webp(*fingerprints))
+            canonical_fingerprints = canonicalize_fingerprints(fingerprints)
         except ValueError:
             abort(400, description="Unknown unit or invalid squad size.")
 
+        canonical_result_key = encode_result_key(*canonical_fingerprints)
+        if result_key != canonical_result_key:
+            abort(400, description="Non-canonical combat result key.")
+
+        image_path = app.extensions["cache"].get_or_create(canonical_result_key, lambda: make_results_webp(*canonical_fingerprints))
         return redirect(f"/generated/{APP_REVISION}/{CHARTS_REVISION}/{image_path.name}")
 
     @app.get("/generated/<app_revision>/<int:charts_revision>/<file_name>")

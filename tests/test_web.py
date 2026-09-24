@@ -18,6 +18,69 @@ def encode_result_key(attacker, defender):
     return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
 
 
+def encode_json(payload):
+    return base64.urlsafe_b64encode(payload.encode("utf-8")).decode("ascii").rstrip("=")
+
+
+def test_frontend_includes_shareable_configuration_support(tmp_path):
+    application = web_app.create_flask_app(cache_dir=tmp_path)
+    client = application.test_client()
+
+    index = client.get("/")
+    script = client.get("/app.js")
+
+    assert index.status_code == 200
+    assert b'id="link-version-warning"' in index.data
+    assert script.status_code == 200
+    assert b"history.replaceState" in script.data
+    assert b"readLinkedConfiguration" in script.data
+    assert b"MAX_SHARE_FRAGMENT_LENGTH" in script.data
+    assert b"allowedConfigurationMask" in script.data
+
+
+@pytest.mark.parametrize(
+    "result_key",
+    [
+        encode_json("1"),
+        encode_result_key(["Marine", True, 0], ["Zealot", 3, 0]),
+        encode_result_key(["Marine", 6, True], ["Zealot", 3, 0]),
+        encode_result_key(["Marine", 6, -1], ["Zealot", 3, 0]),
+        "not!base64",
+        "A" * (web_app.MAX_RESULT_KEY_LENGTH + 1),
+    ],
+)
+def test_result_image_rejects_malformed_key_before_cache(tmp_path, monkeypatch, result_key):
+    generate_image = Mock()
+    monkeypatch.setattr(web_app, "make_results_webp", generate_image)
+    application = web_app.create_flask_app(cache_dir=tmp_path)
+
+    response = application.test_client().get(f"/api/results/{APP_REVISION}/{CHARTS_REVISION}/{result_key}")
+
+    assert response.status_code == 400
+    assert generate_image.call_count == 0
+    assert list(application.extensions["cache"].image_dir.iterdir()) == []
+
+
+@pytest.mark.parametrize(
+    "result_key",
+    [
+        encode_result_key(["Marine", 6, 1], ["Zealot", 3, 0]),
+        encode_result_key(["Marine", 6, 1 << 30], ["Zealot", 3, 0]),
+        encode_json(json.dumps([["Marine", 6, 0], ["Zealot", 3, 0]])),
+    ],
+)
+def test_result_image_rejects_noncanonical_key_before_cache(tmp_path, monkeypatch, result_key):
+    generate_image = Mock()
+    monkeypatch.setattr(web_app, "make_results_webp", generate_image)
+    application = web_app.create_flask_app(cache_dir=tmp_path)
+
+    response = application.test_client().get(f"/api/results/{APP_REVISION}/{CHARTS_REVISION}/{result_key}")
+
+    assert response.status_code == 400
+    assert generate_image.call_count == 0
+    assert list(application.extensions["cache"].image_dir.iterdir()) == []
+
+
 def test_result_image_with_relative_cache_dir(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     image = b"RIFF\x10\x00\x00\x00WEBPVP8 regression-test"
