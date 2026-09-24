@@ -4,7 +4,7 @@
 
 from sctmgtool.base import Cost, Faction, Range, Speed, Squad, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
 
-_TERRAN_UNITS: tuple[Unit] = (
+_TERRAN_UNITS: tuple[Unit, ...] = (
     Unit(
         faction=Faction.Terran,
         name="Marine",

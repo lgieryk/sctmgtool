@@ -141,10 +141,10 @@ class Weapon:
     name: str
     range: int | str
     target: Tag
-    rate_of_attack: int
+    rate_of_attack: int | str
     hit: int
-    surge: Tag
-    surge_die: SurgeDie
+    surge: Tag | None
+    surge_die: SurgeDie | None
     damage: int
     exchange_for: str = ""
     # pylint: disable-next=protected-access
@@ -280,15 +280,15 @@ class Unit:
     unit_type: UnitType
     size: int | None
     keywords: tuple[str, ...]
-    shield: int
+    shield: int | None
     speed: Speed
-    evade: int
+    evade: int | None
     armour: int
     hit_points: int
-    weapons: tuple[Weapon]
-    squad: tuple[Squad]
+    weapons: tuple[Weapon, ...]
+    squad: tuple[Squad, ...]
     tags: Tag
-    upgrades: tuple[Upgrade]
+    upgrades: tuple[Upgrade, ...]
 
     def has_upgrade(self, name: str) -> bool:
         return any(upgrade.name == name for upgrade in self.upgrades)
