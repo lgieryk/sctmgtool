@@ -18,6 +18,7 @@ from sctmgtool.base import Hook, Tag, Unit, Upgrade, Weapon
 logger = logging.getLogger(__name__)
 
 D6POP = (1, 2, 3, 4, 5, 6)
+TEMPLATE_TARGET_RATIO = 0.6
 
 
 class DicePool:
@@ -155,6 +156,11 @@ class MusteredUnit(Unit):
     def add_tag(self, tag: Tag):
         self.tags |= tag
 
+    def template_targets(self, template: str) -> int:
+        if template != "BT":
+            raise ValueError(f"Unsupported template: {template}")
+        return max(1, round(self.models * TEMPLATE_TARGET_RATIO))
+
     def buff_armour(self, value: int):
         self.armour = max(2, self.armour - value)
 
@@ -286,7 +292,18 @@ def roll_surge(weapon: Weapon, defender: MusteredUnit):
     if not any(tags in defender.tags for tags in weapon.surge):
         return 0
     roll_params = weapon.surge_die.value
+    if roll_params.bt:
+        return defender.template_targets(weapon.surge_die.name)
     return sum((value + 1) // 2 for value in random.choices(D6POP, k=roll_params.d3)) + sum(random.choices(D6POP, k=roll_params.d6)) + roll_params.add
+
+
+def attack_pool_size(batch: WeaponBatch, defender: MusteredUnit) -> int:
+    rate_of_attack = batch.weapon.rate_of_attack
+    if isinstance(rate_of_attack, int):
+        return batch.model_num * rate_of_attack
+
+    template, *modifiers = rate_of_attack.split("+")
+    return defender.template_targets(template) + sum(map(int, modifiers))
 
 
 def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUnit, ctx: HookContext | None = None) -> int:
@@ -297,7 +314,7 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
 
     afp = DicePool.auto_fail_pass_predicate
 
-    attack_pool = DicePool.n_dice(batch.model_num * batch.weapon.rate_of_attack)
+    attack_pool = DicePool.n_dice(attack_pool_size(batch, defender))
     armour_pool = DicePool.empty()
     damage_pool = DicePool.empty()
     discard_pool = DicePool.empty()

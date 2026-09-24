@@ -124,10 +124,12 @@ class SurgeDie(Enum):
         d3: int
         d6: int
         add: int
+        bt: bool
 
-    D3 = _Inner(1, 0, 0)
-    D6 = _Inner(0, 1, 0)
-    D3P1 = _Inner(1, 0, 1)
+    D3 = _Inner(1, 0, 0, False)
+    D6 = _Inner(0, 1, 0, False)
+    D3P1 = _Inner(1, 0, 1, False)
+    BT = _Inner(0, 0, 0, True)
 
     def __str__(self):
         return self.name
@@ -166,7 +168,12 @@ class Weapon:
         self.surge_die = die
 
     def buff_roa(self, val: int):
-        self.rate_of_attack += val
+        if isinstance(self.rate_of_attack, int):
+            self.rate_of_attack += val
+            return
+
+        template, *modifiers = self.rate_of_attack.split("+")
+        self.rate_of_attack = f"{template}+{sum(map(int, modifiers)) + val}"
 
     def buff_hit(self, val: int):
         self.hit = max(2, self.hit - val)

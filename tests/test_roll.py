@@ -4,7 +4,7 @@
 from unittest.mock import patch
 
 from sctmgtool.base import Hook, Range, Squad, SurgeDie, Unit, UnitType, Upgrade
-from sctmgtool.tools import DicePool, HookContext, MusteredUnit, Tag, Weapon, WeaponBatch, roll_damage, roll_surge
+from sctmgtool.tools import DicePool, HookContext, MusteredUnit, Tag, Weapon, WeaponBatch, attack_pool_size, roll_damage, roll_surge
 from sctmgtool.units import TERRAN_UNITS
 
 
@@ -57,6 +57,25 @@ def test_roll_surge():
 
     with patch("random.choices", side_effect=loaded_die(4)):
         assert roll_surge(anti_light2, marine) == 3
+
+    template_surge = Weapon("Blast", 0, Tag.Ground, 0, 0, Tag.Light, SurgeDie.BT, 1)
+    with patch.object(marine, "template_targets", return_value=4) as template_targets:
+        assert roll_surge(template_surge, marine) == 4
+    template_targets.assert_called_once_with("BT")
+
+
+def test_attack_pool_size():
+    marine = muster("Marine")
+
+    regular_batch = WeaponBatch(4, Weapon("Regular", 0, Tag.Ground, 3, 0, None, None, 1))
+    assert attack_pool_size(regular_batch, marine) == 12
+
+    template_weapon = Weapon("Template", 0, Tag.Ground, "BT+4", 0, None, None, 1)
+    template_batch = WeaponBatch(1, template_weapon)
+    assert attack_pool_size(template_batch, marine) == 8
+
+    template_weapon.buff_roa(2)
+    assert attack_pool_size(template_batch, marine) == 10
 
 
 def test_roll_damage():
