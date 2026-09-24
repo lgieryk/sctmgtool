@@ -2,7 +2,13 @@
 # see NOTICE.txt in this directory. They are NOT covered by the project's MIT
 # License.
 
-from sctmgtool.base import Cost, Faction, Range, Speed, Squad, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
+from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
+
+
+def _aftershock_rounds(_, roll, damage):
+    if roll.weapon_batch.weapon.name == "Shock Cannon":
+        damage.value = max(1, roll.defender.size or 1)
+
 
 _TERRAN_UNITS: tuple[Unit, ...] = (
     Unit(
@@ -262,6 +268,54 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
                 cost=Cost(0),
                 apply=lambda unit: unit.weapon("C-14 rifle").set_surge_die(SurgeDie.D6),
             ),
+        ),
+    ),
+    Unit(
+        faction=Faction.Terran,
+        name="Siege Tank",
+        unit_type=UnitType.Elite,
+        size=2,
+        keywords=(),
+        shield=None,
+        speed=Speed(7, 7),
+        evade=None,
+        armour=5,
+        hit_points=14,
+        weapons=(
+            Weapon("Twin Cannon", 12, Tag.Ground, 8, 3, Tag.Armoured, SurgeDie.D6, 1, tags=Tag.PierceArmoured2),
+            Weapon("Shock Cannon", 18, Tag.Ground, "BT+4", 4, Tag.Light | Tag.Armoured, SurgeDie.BT, 1, exchange_for="Twin Cannon"),
+            Weapon("Rolling Over", "E", Tag.Ground, 2, 2, None, None, 1),
+            Weapon("Devastating Charge", "C", Tag.Ground, 4, 3, None, None, 1),
+        ),
+        squad=(Squad(Range(1, 1), 2, 220),),
+        tags=Tag.Mechanical | Tag.Ground | Tag.Armoured,
+        upgrades=(
+            Upgrade("Shock Cannon", Upgrade.activate_weapon),
+            Upgrade("Large", upgrade_type=Upgrade.Type.Other),
+            Upgrade(
+                "! Activate Heavy Plating",
+                message="When this Unit resolves an Armour Roll, it gains TOUGH (1), provided it does not currently have the SIEGE MODE Status.",
+                cost=Cost(),
+                apply=lambda unit: unit.add_tag(Tag.Tough1),
+            ),
+            Upgrade("Mode Transformation", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Coordinated Strike", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Indomitable", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Point Blank", upgrade_type=Upgrade.Type.Other),
+            Upgrade(
+                "Aftershock Rounds",
+                message="When this Unit has the SIEGE MODE Status, its Damage characteristic is treated as equal to the Size characteristic of the current target Unit (to a minimum of 1).",
+                cost=Cost(),
+                upgrade_type=Upgrade.Type.Offensive,
+                apply={Hook.ModifyDamage: _aftershock_rounds},
+            ),
+            Upgrade(
+                "! Shaped Blast",
+                message="Once per Game. When this Unit declares a Ranged Attack action. If this Unit has SIEGE MODE Status, its weapon gains PINPOINT and LOCKED IN (4).",
+                cost=Cost(10),
+                apply=lambda unit: unit.weapon("Shock Cannon").buff_roa(4) or unit.weapon("Shock Cannon").add_tag(Tag.Pinpoint | Tag.LockedIn4),
+            ),
+            Upgrade("Smart Shells", upgrade_type=Upgrade.Type.Other),
         ),
     ),
 )
