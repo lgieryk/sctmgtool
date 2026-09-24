@@ -5,7 +5,7 @@ from sctmgtool.base import Cost, Faction, Speed, SurgeDie, Tag, Unit, UnitType, 
 
 
 def test_tag():
-    all_getters = (Tag.anti_evade, Tag.precision, Tag.pierce_armoured, Tag.pierce_light, Tag.tough)
+    all_getters = (Tag.anti_evade, Tag.precision, Tag.pierce_armoured, Tag.pierce_light, Tag.tough, Tag.critical_hit, Tag.concentrated_fire)
 
     def validate(tag: Tag, expected: map):
         for getter in all_getters:
@@ -17,6 +17,7 @@ def test_tag():
     validate(Tag.PierceArmoured2, {Tag.pierce_armoured: 2})
     validate(Tag.PierceLight2, {Tag.pierce_light: 2})
     validate(Tag.CriticalHit2, {Tag.critical_hit: 2})
+    validate(Tag.ConcentratedFire1, {Tag.concentrated_fire: 1})
 
     tag = Tag.Tough1 | Tag.PierceArmoured2
     expected = {Tag.tough: 1, Tag.pierce_armoured: 2}
@@ -29,6 +30,7 @@ def test_tag():
 
     assert str(Tag.AntiEvade2) == "AntiEvade2"
     assert repr(Tag.AntiEvade2) == "Tag.AntiEvade2"
+    assert str(Tag.ConcentratedFire1) == "ConcentratedFire1"
 
 
 def test_tag_sibling_bits():
@@ -112,6 +114,7 @@ def test_str():
     assert upgrade.point_cost(large_squad=True) == 22
     assert Upgrade("same cost", {}, cost=Cost(11)).point_cost(large_squad=True) == 11
     assert Upgrade("free", {}).point_cost() == 0
+
     assert Upgrade("weapon", Upgrade.activate_weapon).message == "Upgrade weapon"
     assert Upgrade("weapon", Upgrade.activate_weapon, message="Weapon rule").message == "Weapon rule"
     assert Upgrade("weapon", Upgrade.activate_weapon, message="").message == ""
