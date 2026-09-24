@@ -244,6 +244,7 @@ class Hook(Enum):
     ModifyOwner = auto()
     ModifyOpponent = auto()
     RollPoolsInitiated = auto()
+    ModifyArmour = auto()
     ModifyDamage = auto()
 
 
