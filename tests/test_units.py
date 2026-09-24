@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Łukasz Gieryk
 
-from sctmgtool.tools import MusteredUnit
+from sctmgtool import hooks
+from sctmgtool.base import Hook
+from sctmgtool.tools import HookContext, MusteredUnit
 from sctmgtool.units import ALL_UNITS
 
 
@@ -36,3 +38,24 @@ def test_zeratul_shadow_strike_weapon_combinations():
         zeratul = muster("Zeratul", config)
         active = tuple(batch.weapon.name for batch in zeratul.weapon_batches if batch.weapon.name in ("Master Warp Blade", "! Shadow Strike"))
         assert active == expected
+
+
+def test_siege_tank_shock_cannon_automatically_applies_aftershock_rounds():
+    prototype = next(unit for unit in ALL_UNITS if unit.name == "Siege Tank")
+    upgrade_names = {upgrade.name for upgrade in prototype.upgrades}
+    assert "! Shock Cannon / Aftershock Rounds" in upgrade_names
+    assert "Aftershock Rounds" not in upgrade_names
+
+    tank_without_upgrade = muster("Siege Tank")
+    assert tank_without_upgrade.batch("Twin Cannon") is not None
+    assert tank_without_upgrade.batch("Shock Cannon") is None
+
+    tank = muster("Siege Tank", {"! Shock Cannon / Aftershock Rounds": True})
+    shock_cannon = tank.batch("Shock Cannon")
+    assert shock_cannon is not None
+    assert tank.batch("Twin Cannon") is None
+
+    defender = muster("Marine")
+    damage = hooks.DamageHookArgs(shock_cannon.weapon.damage)
+    HookContext(tank).call_hooks(Hook.ModifyDamage, hooks.RollHookArgs(tank, shock_cannon, defender), damage)
+    assert damage.value == defender.size

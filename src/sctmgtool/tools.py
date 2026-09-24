@@ -170,6 +170,9 @@ class MusteredUnit(Unit):
     def buff_evade(self, value: int):
         self.evade = max(2, self.evade - value)
 
+    def set_size(self, value: int):
+        self.size = value
+
     def grant_reroll(self, rt: str):
         for letter in rt:
             assert letter in "REC"

@@ -290,25 +290,37 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
         squad=(Squad(Range(1, 1), 2, 220),),
         tags=Tag.Mechanical | Tag.Ground | Tag.Armoured,
         upgrades=(
-            Upgrade("Shock Cannon", Upgrade.activate_weapon),
+            Upgrade(
+                "! Shock Cannon / Aftershock Rounds",
+                message=(
+                    "When this Unit has the SIEGE MODE Status, its Damage characteristic is treated as equal to "
+                    "the Size characteristic of the current target Unit (to a minimum of 1)."
+                ),
+                apply={
+                    Hook.ModifyOwner: lambda unit: Upgrade.activate_weapon(unit, "Shock Cannon"),
+                    Hook.ModifyDamage: _aftershock_rounds,
+                },
+            ),
             Upgrade("Large", upgrade_type=Upgrade.Type.Other),
             Upgrade(
-                "! Activate Heavy Plating",
+                "Heavy Plating",
                 message="When this Unit resolves an Armour Roll, it gains TOUGH (1), provided it does not currently have the SIEGE MODE Status.",
                 cost=Cost(),
                 apply=lambda unit: unit.add_tag(Tag.Tough1),
             ),
-            Upgrade("Mode Transformation", upgrade_type=Upgrade.Type.Other),
+            Upgrade(
+                "Mode Transformation",
+                message=(
+                    "The active Unit gains or loses the SIEGE MODE Status. "
+                    "While this Unit has the SIEGE MODE Status, its Size characteristic is treated as if it was 3."
+                ),
+                cost=Cost(points=1),
+                upgrade_type=Upgrade.Type.Defensive,
+                apply=lambda unit: unit.set_size(3),
+            ),
             Upgrade("Coordinated Strike", upgrade_type=Upgrade.Type.Other),
             Upgrade("Indomitable", upgrade_type=Upgrade.Type.Other),
             Upgrade("Point Blank", upgrade_type=Upgrade.Type.Other),
-            Upgrade(
-                "Aftershock Rounds",
-                message="When this Unit has the SIEGE MODE Status, its Damage characteristic is treated as equal to the Size characteristic of the current target Unit (to a minimum of 1).",
-                cost=Cost(),
-                upgrade_type=Upgrade.Type.Offensive,
-                apply={Hook.ModifyDamage: _aftershock_rounds},
-            ),
             Upgrade(
                 "! Shaped Blast",
                 message="Once per Game. When this Unit declares a Ranged Attack action. If this Unit has SIEGE MODE Status, its weapon gains PINPOINT and LOCKED IN (4).",
