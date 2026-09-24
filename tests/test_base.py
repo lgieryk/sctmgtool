@@ -48,6 +48,10 @@ def test_weapon():
     w.buff_roa(4)
     assert w.rate_of_attack == 11
 
+    template_weapon = Weapon("Template", 0, Tag.Ground, "BT+4", 3, None, None, 1)
+    template_weapon.buff_roa(2)
+    assert template_weapon.rate_of_attack == "BT+6"
+
     assert w.surge_die is None
     w.set_surge_die(SurgeDie.D6)
     assert w.surge_die == SurgeDie.D6
