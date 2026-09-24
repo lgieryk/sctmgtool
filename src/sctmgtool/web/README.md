@@ -48,6 +48,20 @@ maps result keys to these immutable files. A format change increments the
 charts revision and creates a separate directory; older revision directories
 are left intact for rollback and controlled cache cleanup.
 
+## Configured unit display
+
+The frontend obtains configured unit summaries and weapon rows from:
+
+```text
+GET /api/configurations/<app-revision>/<result-key>
+```
+
+The backend validates the canonical result key, musters both units using the
+same domain hooks as the desktop application, and returns their ready-to-render
+summary and weapon strings. These versioned responses are immutable and may be
+cached by browsers and reverse proxies. The frontend does not reproduce weapon
+activation or replacement rules in JavaScript.
+
 ## Cross-origin access
 
 The static frontend can be hosted on a different origin, such as GitHub Pages.

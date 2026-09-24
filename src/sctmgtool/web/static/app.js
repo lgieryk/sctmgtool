@@ -78,23 +78,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return savedSquad ? savedSquad.models.max : unit.squads[0].models.max;
   }
 
-  function getConfiguredSquad(unit, role) {
-    const squadSize = getConfiguredSquadSize(unit, role);
-    return unit.squads.find((squad) => squad.models.max === squadSize);
-  }
-
-  function getUnitPointCost(unit, role) {
-    const upgradeType = role === "attacker" ? "offensive" : "defensive";
-    const squad = getConfiguredSquad(unit, role);
-    const pointCostKey = unit.squads.indexOf(squad) > 0 ? "large" : "small";
-    const upgradePoints = unit.upgrades.reduce((total, upgrade) => {
-      const isActive = upgrade.type.includes(upgradeType) && getSavedUpgrade(role, unit.name, upgrade.summary);
-      return isActive ? total + upgrade.pointCost[pointCostKey] : total;
-    }, 0);
-
-    return squad.points + upgradePoints;
-  }
-
   function getFingerprint(unit, role) {
     const upgradeType = role === "attacker" ? "offensive" : "defensive";
     const configuration = unit.upgrades.reduce((value, upgrade) => {
@@ -222,62 +205,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  function getAttackerWeaponBatches(unit, squadSize) {
-    const activatingWeaponNames = new Set(
-      unit.upgrades.filter((upgrade) => upgrade.activatesWeapon).map((upgrade) => upgrade.activatesWeapon),
-    );
-    const batches = [];
-    const defaultWeaponTypes = new Set();
-
-    for (const weapon of unit.weapons) {
-      if (activatingWeaponNames.has(weapon.name)) {
-        continue;
-      }
-
-      const weaponType = ["E", "C"].includes(weapon.range) ? weapon.range : "R";
-      const isSidearm = weapon.tags.includes("Sidearm");
-      if (isSidearm || !defaultWeaponTypes.has(weaponType)) {
-        batches.push({ name: weapon.name, modelNum: squadSize });
-        defaultWeaponTypes.add(weaponType);
-      }
-    }
-
-    for (const upgrade of unit.upgrades) {
-      if (!upgrade.activatesWeapon || !upgrade.type.includes("offensive") || !getSavedUpgrade("attacker", unit.name, upgrade.summary)) {
-        continue;
-      }
-
-      const weapon = unit.weapons.find((candidate) => candidate.name === upgrade.activatesWeapon);
-      if (weapon.exchangeFor) {
-        const batchIndex = batches.findIndex((batch) => batch.name === weapon.exchangeFor);
-        if (batchIndex === -1) {
-          continue;
-        }
-
-        const batch = batches[batchIndex];
-        const modelNum = weapon.tags.includes("Specialist") ? 1 : batch.modelNum;
-        if (batch.modelNum > modelNum) {
-          batch.modelNum -= modelNum;
-        } else {
-          batches.splice(batchIndex, 1);
-        }
-        batches.push({ name: weapon.name, modelNum });
-      } else if (weapon.tags.includes("Sidearm")) {
-        batches.push({ name: weapon.name, modelNum: weapon.tags.includes("Specialist") ? 1 : squadSize });
-      }
-    }
-
-    return batches;
-  }
-
-  function updateWeapons(unit, weapons, squadSize) {
-    const batches = getAttackerWeaponBatches(unit, squadSize);
-    const weaponRows = unit.weapons.map((weapon) => {
+  function updateWeapons(configuredWeapons, weapons) {
+    const weaponRows = configuredWeapons.map((weapon) => {
       const row = document.createElement("li");
-      const batch = batches.find((candidate) => candidate.name === weapon.name);
 
-      row.textContent = `${String(batch?.modelNum ?? 0).padStart(2)}x ${weapon.summary}`;
-      row.classList.toggle("weapon--inactive", !batch);
+      row.textContent = weapon.text;
+      row.classList.toggle("weapon--inactive", !weapon.active);
       return row;
     });
 
@@ -318,8 +251,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     upgrades.replaceChildren(...upgradeRows);
   }
 
-  function updateUnitPanel(unit, summary, upgrades, radioName, role, onUpgradeChange) {
-    summary.textContent = `${unit.summary} (${getUnitPointCost(unit, role)} PTS)`;
+  function updateUnitPanel(unit, upgrades, radioName, role, onUpgradeChange) {
     updateUpgrades(unit, upgrades, role, onUpgradeChange);
     updateSquadSizeRadios(unit, radioName, role);
   }
@@ -373,6 +305,48 @@ document.addEventListener("DOMContentLoaded", async () => {
     attackerSelect.value = unitNames.has(getSavedUnit("attacker")) ? getSavedUnit("attacker") : "Marine";
     defenderSelect.value = unitNames.has(getSavedUnit("defender")) ? getSavedUnit("defender") : "Zealot";
 
+    let configurationRequestController = null;
+    let configurationResultKey = null;
+    const updateConfiguredUnits = async (resultKey) => {
+      if (configurationResultKey === resultKey) {
+        return;
+      }
+
+      configurationRequestController?.abort();
+      const controller = new AbortController();
+      configurationRequestController = controller;
+      configurationResultKey = resultKey;
+
+      try {
+        const response = await fetch(apiUrl(`/api/configurations/${cacheRevision.app}/${resultKey}`), { signal: controller.signal });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const configuration = await response.json();
+        if (configurationRequestController !== controller) {
+          return;
+        }
+
+        attackerSummary.textContent = configuration.attacker.summary;
+        defenderSummary.textContent = configuration.defender.summary;
+        updateWeapons(configuration.attacker.weapons, attackerWeapons);
+        hideConnectionError();
+      } catch (error) {
+        if (error.name === "AbortError") {
+          return;
+        }
+
+        configurationResultKey = null;
+        showConnectionError();
+        console.error("Could not load configured units:", error);
+      } finally {
+        if (configurationRequestController === controller) {
+          configurationRequestController = null;
+        }
+      }
+    };
+
     const updateResults = () => {
       const attackerFingerprint = getFingerprint(unitsByName.get(attackerSelect.value), "attacker");
       const defenderFingerprint = getFingerprint(unitsByName.get(defenderSelect.value), "defender");
@@ -381,6 +355,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateShareUrl(cacheRevision.app, resultKey, attackerFingerprint, defenderFingerprint);
       }
 
+      void updateConfiguredUnits(resultKey);
       const resultUrl = apiUrl(`/api/results/${cacheRevision.app}/${cacheRevision.charts}/${resultKey}`);
       const expectedUrl = new URL(resultUrl, window.location.href).href;
 
@@ -419,8 +394,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const updateAttackerSquadSize = () =>
       {
         const unit = unitsByName.get(attackerSelect.value);
-        updateWeapons(unit, attackerWeapons, getConfiguredSquadSize(unit, "attacker"));
-        updateUnitPanel(unit, attackerSummary, attackerUpgrades, "attacker-size", "attacker", () => {
+        updateUnitPanel(unit, attackerUpgrades, "attacker-size", "attacker", () => {
           updateAttackerSquadSize();
           updateResultsAfterUserChange();
         });
@@ -428,7 +402,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const updateDefenderSquadSize = () =>
       updateUnitPanel(
         unitsByName.get(defenderSelect.value),
-        defenderSummary,
         defenderUpgrades,
         "defender-size",
         "defender",

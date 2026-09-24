@@ -57,7 +57,6 @@ def serialize_upgrade(upgrade, index):
 
     return {
         "summary": str(upgrade),
-        "activatesWeapon": upgrade.name if upgrade.message == "Upgrade weapon" else None,
         "fingerprintIndex": index,
         "pointCost": {
             "small": upgrade.point_cost(),
@@ -138,10 +137,32 @@ def make_unit_from_fingerprint(fingerprint: list, is_attacker: bool) -> Mustered
     return MusteredUnit.make(prototype, config, is_attacker)
 
 
-def canonicalize_fingerprints(fingerprints: tuple[list, list]):
+def make_units_from_result_key(result_key: str) -> tuple[MusteredUnit, MusteredUnit]:
+    fingerprints = parse_result_key(result_key)
+    if fingerprints is None:
+        raise ValueError("Invalid combat result key.")
+
     attacker = make_unit_from_fingerprint(fingerprints[0], True)
     defender = make_unit_from_fingerprint(fingerprints[1], False)
-    return attacker.fingerprint, defender.fingerprint
+    canonical_result_key = encode_result_key(attacker.fingerprint, defender.fingerprint)
+    if result_key != canonical_result_key:
+        raise ValueError("Non-canonical combat result key.")
+
+    return attacker, defender
+
+
+def serialize_configured_unit(unit: MusteredUnit) -> dict:
+    weapons = []
+    for weapon in unit.weapons:
+        batch = unit.batch(weapon.name)
+        weapons.append(
+            {
+                "text": f"{batch.model_num if batch is not None else 0:2}x {weapon}",
+                "active": batch is not None,
+            }
+        )
+
+    return {"summary": str(unit), "weapons": weapons}
 
 
 def render_results_webp(histograms) -> bytes:
@@ -238,25 +259,41 @@ def create_flask_app(
         """
         return Response(get_units_json(), mimetype="application/json")
 
+    @app.get("/api/configurations/<app_revision>/<result_key>")
+    def configured_units(app_revision: str, result_key: str):
+        if app_revision != APP_REVISION:
+            abort(404, description="Unknown application revision.")
+
+        try:
+            attacker, defender = make_units_from_result_key(result_key)
+        except ValueError:
+            abort(400, description="Invalid combat result key.")
+
+        response = Response(
+            json.dumps(
+                {
+                    "attacker": serialize_configured_unit(attacker),
+                    "defender": serialize_configured_unit(defender),
+                },
+                ensure_ascii=False,
+                separators=(",", ":"),
+            ),
+            mimetype="application/json",
+        )
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
     @app.get("/api/results/<app_revision>/<int:charts_revision>/<result_key>")
     def result_image(app_revision: str, charts_revision: int, result_key: str):
         if app_revision != APP_REVISION or charts_revision != CHARTS_REVISION:
             abort(404, description="Unknown chart revision.")
 
-        fingerprints = parse_result_key(result_key)
-        if fingerprints is None:
+        try:
+            attacker, defender = make_units_from_result_key(result_key)
+        except ValueError:
             abort(400, description="Invalid combat result key.")
 
-        try:
-            canonical_fingerprints = canonicalize_fingerprints(fingerprints)
-        except ValueError:
-            abort(400, description="Unknown unit or invalid squad size.")
-
-        canonical_result_key = encode_result_key(*canonical_fingerprints)
-        if result_key != canonical_result_key:
-            abort(400, description="Non-canonical combat result key.")
-
-        image_path = app.extensions["cache"].get_or_create(canonical_result_key, lambda: make_results_webp(*canonical_fingerprints))
+        image_path = app.extensions["cache"].get_or_create(result_key, lambda: make_results_webp(attacker.fingerprint, defender.fingerprint))
         return redirect(f"/generated/{APP_REVISION}/{CHARTS_REVISION}/{image_path.name}")
 
     @app.get("/generated/<app_revision>/<int:charts_revision>/<file_name>")
