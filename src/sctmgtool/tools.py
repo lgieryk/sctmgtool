@@ -366,7 +366,10 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
     if batch.weapon.tags & Tag._PierceLight and defender.tags & Tag.Light:
         dmg_per_hit = batch.weapon.tags.pierce_light()
 
-    return damage_pool.size() * dmg_per_hit
+    damage_args = hooks.DamageHookArgs(dmg_per_hit)
+    ctx.call_hooks(Hook.ModifyDamage, hooks.RollHookArgs(attacker, batch, defender), damage_args)
+
+    return damage_pool.size() * damage_args.value
 
 
 class ClashType(Enum):
