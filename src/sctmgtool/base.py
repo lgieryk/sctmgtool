@@ -49,6 +49,7 @@ class Tag(Flag):
     Precision3      = 0b0000000000000000000000000000010010000000000000
     Pinpoint        = 0b0000000000000000000000000000100000000000000000
     _LockedIn       = 0b0000000000000000000000000001000000000000000000
+    LockedIn4       = 0b0000000000000000000000010001000000000000000000
     LockedIn6       = 0b0000000000000000000001000001000000000000000000
     _PierceArmoured = 0b0000000000000000000010000000000000000000000000
     PierceArmoured2 = 0b0000000000000000001010000000000000000000000000
@@ -100,6 +101,9 @@ class Tag(Flag):
     def precision(self):
         return self._extract(Tag._Precision)
 
+    def locked_in(self):
+        return self._extract(Tag._LockedIn)
+
     def pierce_armoured(self):
         return self._extract(Tag._PierceArmoured)
 
@@ -114,7 +118,7 @@ class Tag(Flag):
 
 
 # pylint: disable-next=protected-access
-Tag.HIDDEN_MEMBERS_MASK = Tag._AntiEvade | Tag._Precision | Tag._PierceArmoured | Tag._Tough | Tag._CriticalHit
+Tag.HIDDEN_MEMBERS_MASK = Tag._AntiEvade | Tag._Precision | Tag._LockedIn | Tag._PierceArmoured | Tag._Tough | Tag._CriticalHit
 Tag.VISIBLE_MEMBERS = [(name, member) for name, member in Tag.__members__.items() if not name.startswith("_")]
 
 
