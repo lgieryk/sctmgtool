@@ -69,3 +69,25 @@ https://lgieryk.github.io
 Requests without an `Origin` header continue to work normally. Requests from
 origins outside the configured allowlist receive the API response without CORS
 permission, so browsers cannot expose it to the calling page.
+
+## Shareable configurations
+
+The frontend stores the current unit selection, squad sizes, and upgrades in
+the URL fragment. A link has the following form:
+
+```text
+https://lgieryk.github.io/sctmgtool/#app=0.4.6&state=<base64url-state>&label=<unit>-vs-<unit>
+```
+
+Only `app` and `state` are used to restore the configuration. The human-readable
+`label` contains only the two unit names and is ignored when parsing the link.
+Opening a link created by a different application version restores it using
+the current unit data and displays a warning that the resulting configuration
+may differ. The old version remains in the address until the user changes the
+configuration.
+
+Before applying a linked configuration, the frontend validates its structure,
+unit names, squad sizes, and role-specific upgrade bits, then rebuilds the
+result key from the validated state. The API independently performs the same
+domain validation and accepts only the canonical result key before consulting
+the cache or starting a simulation.

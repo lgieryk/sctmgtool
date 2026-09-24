@@ -2,6 +2,8 @@
 // Copyright (c) 2026 Łukasz Gieryk
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const MAX_SHARE_FRAGMENT_LENGTH = 2048;
+  const MAX_RESULT_KEY_LENGTH = 512;
   const apiBaseUrl = (window.SCTMGTOOL_API_BASE_URL || window.location.origin).replace(/\/$/, "");
   const apiUrl = (path) => `${apiBaseUrl}${path}`;
   const attackerSelect = document.querySelector("#attacker-select");
@@ -13,6 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const attackerUpgrades = document.querySelector("#attacker-upgrades");
   const defenderUpgrades = document.querySelector("#defender-upgrades");
   const connectionError = document.querySelector("#connection-error");
+  const linkVersionWarning = document.querySelector("#link-version-warning");
   const resultsContainer = document.querySelector("#results-container");
   const resultsImage = document.querySelector("#results-image");
 
@@ -22,6 +25,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function hideConnectionError() {
     connectionError.hidden = true;
+  }
+
+  function showLinkWarning(message) {
+    linkVersionWarning.textContent = message;
+    linkVersionWarning.hidden = false;
+  }
+
+  function hideLinkWarning() {
+    linkVersionWarning.hidden = true;
   }
 
   function squadSizeKey(role, unitName) {
@@ -97,6 +109,99 @@ document.addEventListener("DOMContentLoaded", async () => {
     const payload = new TextEncoder().encode(JSON.stringify([attackerFingerprint, defenderFingerprint]));
     const binary = String.fromCharCode(...payload);
     return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+  }
+
+  function decodeResultKey(resultKey) {
+    if (!resultKey || resultKey.length > MAX_RESULT_KEY_LENGTH || !/^[A-Za-z0-9_-]+$/.test(resultKey)) {
+      throw new Error("Invalid configuration encoding.");
+    }
+
+    const base64 = resultKey.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(resultKey.length / 4) * 4, "=");
+    const binary = atob(base64);
+    const payload = JSON.parse(new TextDecoder().decode(Uint8Array.from(binary, (character) => character.charCodeAt(0))));
+    const isFingerprint = (fingerprint) =>
+      Array.isArray(fingerprint) &&
+      fingerprint.length === 3 &&
+      typeof fingerprint[0] === "string" &&
+      Number.isInteger(fingerprint[1]) &&
+      Number.isInteger(fingerprint[2]) &&
+      fingerprint[2] >= 0 &&
+      fingerprint[2] <= 0x7fffffff;
+
+    if (!Array.isArray(payload) || payload.length !== 2 || !payload.every(isFingerprint)) {
+      throw new Error("Invalid configuration payload.");
+    }
+
+    return payload;
+  }
+
+  function makeUnitLabel(unitName) {
+    return unitName
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^A-Za-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
+
+  function updateShareUrl(appVersion, resultKey, attackerFingerprint, defenderFingerprint) {
+    const parameters = new URLSearchParams({
+      app: appVersion,
+      state: resultKey,
+      label: `${makeUnitLabel(attackerFingerprint[0])}-vs-${makeUnitLabel(defenderFingerprint[0])}`,
+    });
+    const url = new URL(window.location.href);
+    url.hash = parameters.toString();
+    history.replaceState(null, "", url);
+  }
+
+  function readLinkedConfiguration() {
+    if (window.location.hash.length > MAX_SHARE_FRAGMENT_LENGTH) {
+      throw new Error("The configuration link is too long.");
+    }
+
+    const parameters = new URLSearchParams(window.location.hash.slice(1));
+    const appVersion = parameters.get("app");
+    const resultKey = parameters.get("state");
+
+    if (appVersion === null && resultKey === null) {
+      return null;
+    }
+    if (!appVersion || !resultKey) {
+      throw new Error("The configuration link is incomplete.");
+    }
+
+    return { appVersion, fingerprints: decodeResultKey(resultKey) };
+  }
+
+  function validateLinkedFingerprint(fingerprint, role, unitsByName) {
+    const [unitName, squadSize, configuration] = fingerprint;
+    const unit = unitsByName.get(unitName);
+    if (!unit || !unit.squads.some((squad) => squad.models.max === squadSize)) {
+      throw new Error(`Unknown unit or squad size: ${unitName}.`);
+    }
+
+    const upgradeType = role === "attacker" ? "offensive" : "defensive";
+    const allowedConfigurationMask = unit.upgrades.reduce(
+      (mask, upgrade) => (upgrade.type.includes(upgradeType) ? mask | (1 << upgrade.fingerprintIndex) : mask),
+      0,
+    );
+    if ((configuration & ~allowedConfigurationMask) !== 0) {
+      throw new Error(`Invalid ${role} upgrade configuration.`);
+    }
+  }
+
+  function applyLinkedFingerprint(fingerprint, role, unitsByName) {
+    const [unitName, squadSize, configuration] = fingerprint;
+    const unit = unitsByName.get(unitName);
+
+    saveUnit(role, unitName);
+    saveSquadSize(role, unitName, squadSize);
+    const upgradeType = role === "attacker" ? "offensive" : "defensive";
+    for (const upgrade of unit.upgrades) {
+      if (upgrade.type.includes(upgradeType)) {
+        saveUpgrade(role, unitName, upgrade.summary, Boolean(configuration & (1 << upgrade.fingerprintIndex)));
+      }
+    }
   }
 
   function updateSquadSizeRadios(unit, radioName, role) {
@@ -241,16 +346,41 @@ document.addEventListener("DOMContentLoaded", async () => {
       defenderSelect.add(option);
     }
 
-    const unitNames = new Set(units.map((unit) => unit.name));
+    const unitsByName = new Map(units.map((unit) => [unit.name, unit]));
+    let preserveLinkedUrl = false;
+    try {
+      const linkedConfiguration = readLinkedConfiguration();
+      if (linkedConfiguration) {
+        validateLinkedFingerprint(linkedConfiguration.fingerprints[0], "attacker", unitsByName);
+        validateLinkedFingerprint(linkedConfiguration.fingerprints[1], "defender", unitsByName);
+        applyLinkedFingerprint(linkedConfiguration.fingerprints[0], "attacker", unitsByName);
+        applyLinkedFingerprint(linkedConfiguration.fingerprints[1], "defender", unitsByName);
+
+        if (linkedConfiguration.appVersion !== cacheRevision.app) {
+          preserveLinkedUrl = true;
+          showLinkWarning(
+            `This link was created with version ${linkedConfiguration.appVersion}. ` +
+              `The current version is ${cacheRevision.app}, so the displayed configuration may differ.`,
+          );
+        }
+      }
+    } catch (error) {
+      showLinkWarning("This configuration link is invalid and was ignored.");
+      console.error("Could not load linked configuration:", error);
+    }
+
+    const unitNames = new Set(unitsByName.keys());
     attackerSelect.value = unitNames.has(getSavedUnit("attacker")) ? getSavedUnit("attacker") : "Marine";
     defenderSelect.value = unitNames.has(getSavedUnit("defender")) ? getSavedUnit("defender") : "Zealot";
 
-    const unitsByName = new Map(units.map((unit) => [unit.name, unit]));
     const updateResults = () => {
-      const resultKey = encodeResultKey(
-        getFingerprint(unitsByName.get(attackerSelect.value), "attacker"),
-        getFingerprint(unitsByName.get(defenderSelect.value), "defender"),
-      );
+      const attackerFingerprint = getFingerprint(unitsByName.get(attackerSelect.value), "attacker");
+      const defenderFingerprint = getFingerprint(unitsByName.get(defenderSelect.value), "defender");
+      const resultKey = encodeResultKey(attackerFingerprint, defenderFingerprint);
+      if (!preserveLinkedUrl) {
+        updateShareUrl(cacheRevision.app, resultKey, attackerFingerprint, defenderFingerprint);
+      }
+
       const resultUrl = apiUrl(`/api/results/${cacheRevision.app}/${cacheRevision.charts}/${resultKey}`);
       const expectedUrl = new URL(resultUrl, window.location.href).href;
 
@@ -281,13 +411,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       };
       resultsImage.src = resultUrl;
     };
+    const updateResultsAfterUserChange = () => {
+      preserveLinkedUrl = false;
+      hideLinkWarning();
+      updateResults();
+    };
     const updateAttackerSquadSize = () =>
       {
         const unit = unitsByName.get(attackerSelect.value);
         updateWeapons(unit, attackerWeapons, getConfiguredSquadSize(unit, "attacker"));
         updateUnitPanel(unit, attackerSummary, attackerUpgrades, "attacker-size", "attacker", () => {
           updateAttackerSquadSize();
-          updateResults();
+          updateResultsAfterUserChange();
         });
       };
     const updateDefenderSquadSize = () =>
@@ -299,19 +434,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         "defender",
         () => {
           updateDefenderSquadSize();
-          updateResults();
+          updateResultsAfterUserChange();
         },
       );
 
     attackerSelect.addEventListener("change", () => {
       saveUnit("attacker", attackerSelect.value);
       updateAttackerSquadSize();
-      updateResults();
+      updateResultsAfterUserChange();
     });
     defenderSelect.addEventListener("change", () => {
       saveUnit("defender", defenderSelect.value);
       updateDefenderSquadSize();
-      updateResults();
+      updateResultsAfterUserChange();
     });
     swapButton.addEventListener("click", () => {
       const attackerUnit = attackerSelect.value;
@@ -325,7 +460,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (radio.checked) {
           saveSquadSize("attacker", attackerSelect.value, radio.value);
           updateAttackerSquadSize();
-          updateResults();
+          updateResultsAfterUserChange();
         }
       });
     });
@@ -334,7 +469,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (radio.checked) {
           saveSquadSize("defender", defenderSelect.value, radio.value);
           updateDefenderSquadSize();
-          updateResults();
+          updateResultsAfterUserChange();
         }
       });
     });
