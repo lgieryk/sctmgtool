@@ -120,7 +120,7 @@ def test_str():
     assert Upgrade("weapon", Upgrade.activate_weapon, message="").message == ""
 
     unit = Unit(Faction.Terran, "name", UnitType.Core, 2, (), 1, speed, 2, 3, 4, (weapon,), (), Tag.Unique, ())
-    assert str(unit) == "name SHLD:1 EVA:2+ ARM:3+ HP:4 Unique"
+    assert str(unit) == "name SHLD:1 EVA:2+ ARM:3+ HP:4 SIZ:2 Unique"
 
 
 def test_unit_structure_upgrade():

@@ -108,9 +108,9 @@ def test_mustered_unit_str_includes_squad_and_role_upgrade_points():
     attacker = MusteredUnit.make(prototype, {"Attack": True, "Defense": True, "Same cost": True}, is_attacker=True)
     defender = MusteredUnit.make(prototype, {"_squad_size_def": 9, "Attack": True, "Defense": True}, is_attacker=False)
 
-    assert str(attacker_without_upgrades) == "Marine SHLD:None EVA:5+ ARM:5+ HP:2 Biological|Ground|Light (160 PTS)"
-    assert str(attacker) == "Marine SHLD:None EVA:5+ ARM:5+ HP:2 Biological|Ground|Light (190 PTS)"
-    assert str(defender) == "Marine SHLD:None EVA:5+ ARM:5+ HP:2 Biological|Ground|Light (270 PTS)"
+    assert str(attacker_without_upgrades) == "Marine SHLD:None EVA:5+ ARM:5+ HP:2 SIZ:2 Biological|Ground|Light (160 PTS)"
+    assert str(attacker) == "Marine SHLD:None EVA:5+ ARM:5+ HP:2 SIZ:2 Biological|Ground|Light (190 PTS)"
+    assert str(defender) == "Marine SHLD:None EVA:5+ ARM:5+ HP:2 SIZ:2 Biological|Ground|Light (270 PTS)"
 
 
 def test_query():

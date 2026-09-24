@@ -333,4 +333,4 @@ class Unit:
         return self.has_upgrade("Structure")
 
     def __str__(self):
-        return f"{self.name} SHLD:{self.shield} EVA:{self.evade}+ ARM:{self.armour}+ HP:{self.hit_points} {self.tags}"
+        return f"{self.name} SHLD:{self.shield} EVA:{self.evade}+ ARM:{self.armour}+ HP:{self.hit_points} SIZ:{self.size} {self.tags}"
