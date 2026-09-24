@@ -22,3 +22,17 @@ def test_ravager_corrosive_bile_weapon_combinations():
         ravager = muster("Ravager", config)
         active = tuple(batch.weapon.name for batch in ravager.weapon_batches if batch.weapon.name in ("Plasma Discharge", "! Corrosive Bile"))
         assert active == expected
+
+
+def test_zeratul_shadow_strike_weapon_combinations():
+    cases = (
+        ({}, ("Master Warp Blade",)),
+        ({"! Shadow Strike": True}, ("Master Warp Blade", "! Shadow Strike")),
+        ({"! Shadow Strike (2)": True}, ("! Shadow Strike",)),
+        ({"! Shadow Strike": True, "! Shadow Strike (2)": True}, ("! Shadow Strike",)),
+    )
+
+    for config, expected in cases:
+        zeratul = muster("Zeratul", config)
+        active = tuple(batch.weapon.name for batch in zeratul.weapon_batches if batch.weapon.name in ("Master Warp Blade", "! Shadow Strike"))
+        assert active == expected
