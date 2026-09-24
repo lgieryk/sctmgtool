@@ -5,7 +5,7 @@ import enum
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum, Flag, auto
-from typing import NamedTuple
+from typing import Literal, NamedTuple
 
 # pylint: disable=invalid-name
 
@@ -148,7 +148,7 @@ class Weapon:
     range: int | str
     target: Tag
     rate_of_attack: int | str
-    hit: int
+    hit: int | Literal["!"]
     surge: Tag | None
     surge_die: SurgeDie | None
     damage: int
@@ -180,9 +180,13 @@ class Weapon:
         self.rate_of_attack = f"{template}+{sum(map(int, modifiers)) + val}"
 
     def buff_hit(self, val: int):
+        if self.hit == "!":
+            return
         self.hit = max(2, self.hit - val)
 
     def debuff_hit(self, val: int):
+        if self.hit == "!":
+            return
         self.hit = min(6, self.hit + val)
 
     def set_damage(self, val: int):
@@ -195,13 +199,14 @@ class Weapon:
     def __str__(self):
         ef = f" FOR:{self.exchange_for}" if self.exchange_for != "" else ""
         surge = f" {self.surge or ''!s:<16} {self.surge_die or ''!s:<4}"
+        hit = f"{self.hit}+" if isinstance(self.hit, int) else f"{self.hit:<2}"
 
         if Tag.Flying in self.target and Tag.Ground in self.target:
             tgt = "GF"
         else:
             tgt = "G " if Tag.Ground in self.target else "F "
 
-        return f"{self.name:<30} {self.range:>2} {tgt} {self.rate_of_attack}D6 {self.hit}+ {surge} DMG:{self.damage} {self.tags!s:<20}{ef}"
+        return f"{self.name:<30} {self.range:>2} {tgt} {self.rate_of_attack}D6 {hit} {surge} DMG:{self.damage} {self.tags!s:<20}{ef}"
 
 
 class Range(NamedTuple):

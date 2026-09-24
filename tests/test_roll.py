@@ -118,6 +118,20 @@ def test_roll_damage():
         assert roll_damage(None, batch, marine) == 6
 
 
+def test_automatic_hit_skips_hit_roll_but_not_armour_roll():
+    marine = muster("Marine")
+    marine.armour = 4
+    batch = WeaponBatch(2, Weapon("Automatic", 12, Tag.Ground, 3, "!", None, None, 1))
+
+    with patch("random.choices", side_effect=loaded_die(3)) as choices:
+        assert roll_damage(None, batch, marine) == 6
+    assert choices.call_count == 1
+
+    with patch("random.choices", side_effect=loaded_die(4)) as choices:
+        assert roll_damage(None, batch, marine) == 0
+    assert choices.call_count == 1
+
+
 def test_evade():
     marine = muster("Marine")
 
