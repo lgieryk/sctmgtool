@@ -74,16 +74,26 @@ def simulate_clash(
 
     for clash_type in ClashType:
         damage_samples = []
+        kills_samples = []
         batches = select_weapons(attacker, defender, clash_type)
 
         for _ in range(roll_count):
             total_damage = 0
             for batch in batches:
+                kills_before = defender.num_killed(total_damage)
                 total_damage += roll_damage(attacker, batch, defender, context)
+
+                has_concentrated_fire = batch.weapon.tags.concentrated_fire() > 0
+                if has_concentrated_fire:
+                    max_kills = min(defender.models, kills_before + batch.weapon.tags.concentrated_fire())
+                    max_damage = (defender.shield or 0) + max_kills * defender.hit_points
+                    total_damage = min(total_damage, max_damage)
+
             damage_samples.append(total_damage)
+            kills_samples.append(defender.num_killed(total_damage))
 
         damage_count = np.bincount(np.clip(damage_samples, 0, damage_limit), minlength=damage_limit + 1)
-        kills_count = np.bincount([defender.num_killed(damage) for damage in damage_samples], minlength=defender.models + 1)
+        kills_count = np.bincount(kills_samples, minlength=defender.models + 1)
 
         histograms[clash_type] = Histogram(
             damage=damage_count / damage_count.sum() * 100,

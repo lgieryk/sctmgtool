@@ -394,7 +394,8 @@ def select_weapons(attacker: MusteredUnit, defender: MusteredUnit, clash_type: C
         else:
             return weapon.type_letter == "R" and weapon.target & defender.tags
 
-    return [batch for batch in attacker.weapon_batches if is_applicable(batch.weapon)]
+    batches = [batch for batch in attacker.weapon_batches if is_applicable(batch.weapon)]
+    return sorted(batches, key=lambda batch: batch.weapon.tags.concentrated_fire() == 0)
 
 
 def process_unit_list(units):
