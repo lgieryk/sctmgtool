@@ -112,6 +112,9 @@ def test_str():
     assert upgrade.point_cost(large_squad=True) == 22
     assert Upgrade("same cost", {}, cost=Cost(11)).point_cost(large_squad=True) == 11
     assert Upgrade("free", {}).point_cost() == 0
+    assert Upgrade("weapon", Upgrade.activate_weapon).message == "Upgrade weapon"
+    assert Upgrade("weapon", Upgrade.activate_weapon, message="Weapon rule").message == "Weapon rule"
+    assert Upgrade("weapon", Upgrade.activate_weapon, message="").message == ""
 
     unit = Unit(Faction.Terran, "name", UnitType.Core, 2, (), 1, speed, 2, 3, 4, (weapon,), (), Tag.Unique, ())
     assert str(unit) == "name SHLD:1 EVA:2+ ARM:3+ HP:4 Unique"

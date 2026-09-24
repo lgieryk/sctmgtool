@@ -253,14 +253,18 @@ class Upgrade:
         Defensive = auto()
         Offensive = auto()
 
-    def __init__(self, name: str, /, apply: Callable | dict | None = None, *, message="", cost=None, upgrade_type=None):
+    def __init__(self, name: str, /, apply: Callable | dict | None = None, *, message: str | None = None, cost=None, upgrade_type=None):
         if apply is Upgrade.activate_weapon:
 
             def wrapper(unit):
                 return Upgrade.activate_weapon(unit, name)
 
             apply = wrapper
-            message = "Upgrade weapon"
+            if message is None:
+                message = "Upgrade weapon"
+
+        if message is None:
+            message = ""
 
         if apply is None:
 
