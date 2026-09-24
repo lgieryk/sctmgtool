@@ -4,6 +4,20 @@
 
 from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
 
+
+def _activate_shadow_strike_only(unit):
+    if unit.batch("! Shadow Strike") is None:
+        unit.activate_weapon("! Shadow Strike")
+
+    master_warp_blade = unit.batch("Master Warp Blade")
+    if master_warp_blade is not None:
+        unit.weapon_batches.remove(master_warp_blade)
+
+
+def _improved_barrier(_, __, damage):
+    damage.value = min(damage.value, 1)
+
+
 _PROTOSS_UNITS: tuple[Unit, ...] = (
     Unit(
         faction=Faction.Protoss,
@@ -66,6 +80,114 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
             Upgrade("Phase Prism", upgrade_type=Upgrade.Type.Other),
             Upgrade("Hierarch’s Stand", upgrade_type=Upgrade.Type.Other),
             Upgrade("Lightning Dash", upgrade_type=Upgrade.Type.Other),
+        ),
+    ),
+    Unit(
+        faction=Faction.Protoss,
+        name="Immortal",
+        unit_type=UnitType.Elite,
+        size=3,
+        keywords=(),
+        shield=6,
+        speed=Speed(7, 7),
+        evade=None,
+        armour=4,
+        hit_points=8,
+        weapons=(
+            Weapon("Left Photon Disruptor", 12, Tag.Ground, 4, 3, Tag.Armoured, SurgeDie.D3, 2, tags=Tag.ConcentratedFire1),
+            Weapon(
+                "Right Photon Disruptor",
+                12,
+                Tag.Ground,
+                4,
+                3,
+                Tag.Armoured,
+                SurgeDie.D3,
+                2,
+                tags=Tag.Sidearm | Tag.ConcentratedFire1,
+            ),
+            Weapon(
+                "Left Phase Disruptor",
+                12,
+                Tag.Ground,
+                4,
+                3,
+                Tag.Armoured,
+                SurgeDie.D3,
+                1,
+                tags=Tag.PierceArmoured3,
+                exchange_for="Left Photon Disruptor",
+            ),
+            Weapon(
+                "Right Phase Disruptor",
+                12,
+                Tag.Ground,
+                4,
+                3,
+                Tag.Armoured,
+                SurgeDie.D3,
+                1,
+                tags=Tag.Sidearm | Tag.PierceArmoured3,
+                exchange_for="Right Photon Disruptor",
+            ),
+            Weapon("Stomp", "E", Tag.Ground, 3, 3, None, None, 1),
+            Weapon("Devastating Charge", "C", Tag.Ground, 4, 3, None, None, 1),
+        ),
+        squad=(Squad(Range(1, 1), 2, 280),),
+        tags=Tag.Mechanical | Tag.Ground | Tag.Armoured,
+        upgrades=(
+            Upgrade("Left Phase Disruptor", apply=Upgrade.activate_weapon),
+            Upgrade("Right Phase Disruptor", apply=Upgrade.activate_weapon),
+            Upgrade(
+                "Shield Overcharge",
+                message="Use before this Unit makes an Armour Roll. If this Unit has the Shielded Status, It gains TOUGH (2) for this roll.",
+                cost=Cost(20, points=1),
+                apply=lambda unit: unit.add_tag(Tag.Tough2),
+                upgrade_type=Upgrade.Type.Defensive,
+            ),
+            Upgrade(
+                "Improved Barrier",
+                message="Use when this Unit is selected as the target of an attack. If this Unit has the Shielded Status, the Damage characteristic of the attacking weapon is treated as a maximum of 1 for this attack.",
+                cost=Cost(),
+                apply={Hook.ModifyDamage: _improved_barrier},
+                upgrade_type=Upgrade.Type.Defensive,
+            ),
+            Upgrade(
+                "Fury Unyielding",
+                message='While this Unit is Within 3" of a Mission Marker, its Ranged Weapons gain CRITICAL HIT (1) when targeting an Enemy Unit that is also Within 3" of that same Mission Marker.',
+                cost=Cost(20),
+                apply=lambda unit: unit.weapon("@type_letter==R").add_tag(Tag.CriticalHit1),
+            ),
+            Upgrade(
+                "For the Ancients",
+                message='When this Unit makes a Ranged Attack, if the target Unit is more than 8" away, the attacking weapons gain PRECISION (1).',
+                cost=Cost(20),
+                apply=lambda unit: unit.weapon("@type_letter==R").add_tag(Tag.Precision1),
+            ),
+            Upgrade("Indomitable", upgrade_type=Upgrade.Type.Other),
+        ),
+    ),
+    Unit(
+        faction=Faction.Protoss,
+        name="Nerazim Watchers (Adept)",
+        unit_type=UnitType.Core,
+        size=2,
+        keywords=("Protoss", "Nerazim"),
+        shield=2,
+        speed=Speed(5, 8),
+        evade=5,
+        armour=5,
+        hit_points=3,
+        weapons=(
+            Weapon("Glaive Cannon", 8, Tag.Ground | Tag.Flying, 3, 3, Tag.Light, SurgeDie.D3P1, 1, tags=Tag.AntiEvade1 | Tag.Pinpoint),
+            Weapon("Strike", "E", Tag.Ground, 1, 5, None, None, 1),
+        ),
+        squad=(Squad(Range(3, 4), 1, 210),),
+        tags=Tag.Biological | Tag.Ground | Tag.Light,
+        upgrades=(
+            Upgrade("Path of Shadows", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Nerazim Farsight", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Psionic Transfer", upgrade_type=Upgrade.Type.Other),
         ),
     ),
     Unit(
@@ -213,6 +335,51 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
             Upgrade("Leg Enhancements", upgrade_type=Upgrade.Type.Other),
             Upgrade("Charge", upgrade_type=Upgrade.Type.Other),
             Upgrade("Zealous Round", upgrade_type=Upgrade.Type.Other),
+        ),
+    ),
+    Unit(
+        faction=Faction.Protoss,
+        name="Zeratul",
+        unit_type=UnitType.Hero,
+        size=2,
+        keywords=(),
+        shield=3,
+        speed=Speed(7, 7),
+        evade=5,
+        armour=5,
+        hit_points=5,
+        weapons=(
+            Weapon("Master Warp Blade", "E", Tag.Ground, 4, 3, Tag.Light | Tag.Armoured, SurgeDie.D3, 2, tags=Tag.Instant),
+            Weapon("! Shadow Strike", "E", Tag.Ground, 4, "!", None, None, 1, tags=Tag.Sidearm),
+            Weapon("Devastating Charge", "C", Tag.Ground, 4, 4, None, None, 1),
+        ),
+        squad=(Squad(Range(1, 1), 1, 230),),
+        tags=Tag.Biological | Tag.Ground | Tag.Psionic | Tag.Unique,
+        upgrades=(
+            Upgrade("One With the Shadows", upgrade_type=Upgrade.Type.Other),
+            Upgrade(
+                "Prophetic Vision",
+                message="REPEATABLE. Use when this Unit is selected as the target of an attack. This Unit's Evade characteristic is treated as 4+ against this attack and cannot be modified.",
+                cost=Cost(points=1),
+                apply=lambda unit: unit.grant_reroll("REC") or unit.buff_evade(1),
+                upgrade_type=Upgrade.Type.Defensive,
+            ),
+            Upgrade(
+                "Sentenced to Death",
+                message="Target Enemy Unit on the battlefield. Whenever Zeratul makes a Close Combat Attack targeting the selected Unit, its weapon gains CRITICAL HIT (2).",
+                cost=Cost(points=1),
+                apply=lambda unit: unit.weapon("Master Warp Blade").add_tag(Tag.CriticalHit2),
+                upgrade_type=Upgrade.Type.Offensive,
+            ),
+            Upgrade("Void Prison", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Void Blink", upgrade_type=Upgrade.Type.Other),
+            Upgrade(
+                "! Shadow Strike",
+                message="All Enemy Units Engaged with this Unit suffer HITS 4 (1).",
+                cost=Cost(points=1),
+                apply=Upgrade.activate_weapon,
+            ),
+            Upgrade("! Shadow Strike (2)", _activate_shadow_strike_only, message="Use instead of Master Warp Blade.", cost=Cost(points=1)),
         ),
     ),
 )
