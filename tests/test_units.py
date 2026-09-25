@@ -2,7 +2,7 @@
 # Copyright (c) 2026 Łukasz Gieryk
 
 from sctmgtool import hooks
-from sctmgtool.base import Hook
+from sctmgtool.base import Hook, Tag
 from sctmgtool.tools import HookContext, MusteredUnit
 from sctmgtool.units import ALL_UNITS
 
@@ -38,6 +38,13 @@ def test_zeratul_shadow_strike_weapon_combinations():
         zeratul = muster("Zeratul", config)
         active = tuple(batch.weapon.name for batch in zeratul.weapon_batches if batch.weapon.name in ("Master Warp Blade", "! Shadow Strike"))
         assert active == expected
+
+
+def test_psionic_presence_does_not_affect_shadow_strike():
+    zeratul = muster("Zeratul", {"! Shadow Strike": True, "! Psionic Presence / Adept": True})
+
+    assert Tag.Precision1 in zeratul.batch("Master Warp Blade").weapon.tags
+    assert Tag.Precision1 not in zeratul.batch("! Shadow Strike").weapon.tags
 
 
 def test_siege_tank_shock_cannon_automatically_applies_aftershock_rounds():
