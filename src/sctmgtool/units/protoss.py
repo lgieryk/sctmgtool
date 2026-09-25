@@ -390,6 +390,12 @@ def _guardian_shield_effect(_, roll, pools):
         pools.attack_pool.transfer_dice_to(pools.discard_pool, up_to=1)
 
 
+def _psionic_presence_effect(unit):
+    for weapon in unit.weapons:
+        if weapon.type_letter != "C" and weapon.hit != "!":
+            weapon.add_tag(Tag.Precision1)
+
+
 def _apply_common_skills(units):
     guardian_shield = Upgrade(
         "! Guardian Shield / Sentry",
@@ -401,7 +407,7 @@ def _apply_common_skills(units):
     psionic_presence = Upgrade(
         "! Psionic Presence / Adept",
         message="Apply PP of a friendly Adept's Shade token within 4\" - All Ranged and Close Combat weapons gain PRECISION (1)",
-        apply=lambda unit: unit.weapon("@type_letter!=C").add_tag(Tag.Precision1),
+        apply=_psionic_presence_effect,
     )
 
     for unit in units:
