@@ -90,7 +90,7 @@ The frontend stores the current unit selection, squad sizes, and upgrades in
 the URL fragment. A link has the following form:
 
 ```text
-https://lgieryk.github.io/sctmgtool/#app=0.4.6&state=<base64url-state>&label=<unit>-vs-<unit>
+https://lgieryk.github.io/sctmgtool/#app=<version>&state=<base64url-state>&label=<unit>-vs-<unit>
 ```
 
 Only `app` and `state` are used to restore the configuration. The human-readable
