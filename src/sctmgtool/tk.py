@@ -18,7 +18,7 @@ from platformdirs import user_data_dir
 
 import sctmgtool
 from sctmgtool.cache import Cache
-from sctmgtool.histogram import draw_histogram_subfigure, simulate_clash
+from sctmgtool.histogram import BACKGROUND_COLOR, PLOT_BACKGROUND_COLOR, draw_histogram_subfigure, simulate_clash
 from sctmgtool.tools import ClashType, MusteredUnit, Unit, Upgrade
 
 ROLL_COUNT = 10000
@@ -193,7 +193,9 @@ def tkinter_main(units: list[Unit]):
 
     def build_subfigure(parent: Figure, index: int):
         ax1 = parent.add_subplot(1, 3, index + 1)
+        ax1.set_facecolor(PLOT_BACKGROUND_COLOR)
         ax2 = ax1.twiny()
+        ax2.set_facecolor(PLOT_BACKGROUND_COLOR)
         return _Fig(ax1, ax2)
 
     def on_close():
@@ -330,14 +332,18 @@ def tkinter_main(units: list[Unit]):
     duf = ctk.CTkFrame(root)
     duf.pack(padx=10, pady=2, fill="x")
 
-    plots = ctk.CTkFrame(root)
-    figure = Figure(figsize=(15, 3))
-    canvas = FigureCanvasTkAgg(figure, master=plots)
-    canvas.get_tk_widget().pack(fill="x")
-    plots.pack(fill="x")
+    plots = ctk.CTkFrame(root, fg_color=BACKGROUND_COLOR)
+    figure = Figure(figsize=(15, 3), facecolor=BACKGROUND_COLOR)
 
     for i in range(len(ClashType)):
         subfigures.append(build_subfigure(figure, i))
+
+    canvas = FigureCanvasTkAgg(figure, master=plots)
+    canvas_widget = canvas.get_tk_widget()
+    canvas_widget.configure(background=BACKGROUND_COLOR, highlightthickness=0)
+    canvas.draw()
+    canvas_widget.pack(fill="x")
+    plots.pack(fill="x")
 
     select_units()
     root.protocol("WM_DELETE_WINDOW", on_close)

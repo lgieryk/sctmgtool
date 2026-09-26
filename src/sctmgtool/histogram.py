@@ -10,6 +10,13 @@ from matplotlib.figure import Figure
 
 from sctmgtool.tools import ClashType, HookContext, MusteredUnit, roll_damage, select_weapons
 
+BACKGROUND_COLOR = "#0f172a"
+PLOT_BACKGROUND_COLOR = "#3D3D3D"
+TEXT_COLOR = "#e2e8f0"
+BORDER_COLOR = "#475569"
+DAMAGE_COLOR = "#d67886"
+KILLS_COLOR = "#497AB6"
+
 
 class Histogram(NamedTuple):
     damage: np.ndarray
@@ -22,12 +29,17 @@ def draw_histogram_subfigure(
     kills_axis: Axes,
     clash_type: ClashType,
 ) -> None:
+    damage_axis.figure.patch.set_facecolor(BACKGROUND_COLOR)
+
     damage_axis.clear()
-    damage_axis.bar(np.arange(len(histogram.damage)), histogram.damage, width=1.0, alpha=0.6, color="blue", label="Damage")
+    damage_axis.patch.set_visible(False)
+    damage_axis.bar(np.arange(len(histogram.damage)), histogram.damage, width=0.6, align="center", color=DAMAGE_COLOR, label="Damage")
     damage_axis.set_xticks(np.arange(len(histogram.damage)))
-    damage_axis.xaxis.set_tick_params(colors="blue")
-    damage_axis.set_xlabel("Damage", color="blue")
-    damage_axis.set_ylabel("Probability (%)")
+    damage_axis.set_xlim(-0.5, len(histogram.damage) - 0.5)
+    damage_axis.xaxis.set_tick_params(colors=DAMAGE_COLOR)
+    damage_axis.yaxis.set_tick_params(colors=TEXT_COLOR)
+    damage_axis.set_xlabel("Damage", color=DAMAGE_COLOR)
+    damage_axis.set_ylabel("Probability (%)", color=TEXT_COLOR)
     damage_axis.set_ylim(0, 100)
 
     if len(histogram.damage) == 1:
@@ -36,10 +48,17 @@ def draw_histogram_subfigure(
         damage_axis.xaxis.set_major_locator(ticker.MaxNLocator(integer=True, steps=[1, 2, 5, 10]))
 
     kills_axis.clear()
-    kills_axis.bar(np.arange(len(histogram.kills)), histogram.kills, width=1.0, alpha=0.6, color="red", label="Kills")
-    kills_axis.xaxis.set_tick_params(colors="red")
+    kills_axis.set_facecolor(PLOT_BACKGROUND_COLOR)
+    kills_axis.patch.set_visible(True)
+    kills_axis.bar(np.arange(len(histogram.kills)), histogram.kills, width=1.0, color=KILLS_COLOR, label="Kills")
+    kills_axis.set_xlim(-0.5, len(histogram.kills) - 0.5)
+    kills_axis.xaxis.set_tick_params(colors=KILLS_COLOR)
     kills_axis.xaxis.set_label_position("top")
-    kills_axis.set_xlabel(f"{clash_type.value} Kills", color="red")
+    kills_axis.set_xlabel(f"{clash_type.value} Kills", color=KILLS_COLOR)
+
+    for axis in (damage_axis, kills_axis):
+        for spine in axis.spines.values():
+            spine.set_color(BORDER_COLOR)
 
     if len(histogram.kills) == 1:
         kills_axis.set_xticks([0])
