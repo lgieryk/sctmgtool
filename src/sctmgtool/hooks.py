@@ -24,5 +24,10 @@ class ArmourHookArgs:
 
 
 @dataclass
+class ToughHookArgs:
+    value: int
+
+
+@dataclass
 class DamageHookArgs:
     value: int
