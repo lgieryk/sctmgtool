@@ -156,6 +156,7 @@ def tkinter_main(units: list[Unit]):
     roll_cache = RollCache(units, get_config_path().parent)
 
     root = ctk.CTk()
+    root.withdraw()
     root.geometry("1200x800")
     root.title("SC:TMG Tool")
 
@@ -346,5 +347,7 @@ def tkinter_main(units: list[Unit]):
     plots.pack(fill="x")
 
     select_units()
+    root.update_idletasks()
+    root.deiconify()
     root.protocol("WM_DELETE_WINDOW", on_close)
     root.mainloop()
