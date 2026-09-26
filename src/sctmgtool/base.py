@@ -254,6 +254,11 @@ class Hook(Enum):
     ModifyDamage = auto()
 
 
+class StatefulHook:
+    def reset_state(self):
+        raise NotImplementedError()
+
+
 class Upgrade:
     class Type(Flag):
         Other = auto()

@@ -13,7 +13,7 @@ from enum import Enum
 from typing import ClassVar, NamedTuple
 
 from sctmgtool import hooks
-from sctmgtool.base import Hook, Tag, Unit, Upgrade, Weapon
+from sctmgtool.base import Hook, StatefulHook, Tag, Unit, Upgrade, Weapon
 
 logger = logging.getLogger(__name__)
 
@@ -273,10 +273,19 @@ class HookContext:
 
     def __init__(self, *units):
         self.hooks = defaultdict(list)
+        self.stateful_hooks = []
+        stateful_hook_ids = set()
         for unit in units:
             for upgrade in unit.upgrades:
                 for hook_type, action in upgrade.apply.items():
                     self.hooks[hook_type].append(self._H(unit, action))
+                    if isinstance(action, StatefulHook) and id(action) not in stateful_hook_ids:
+                        self.stateful_hooks.append(action)
+                        stateful_hook_ids.add(id(action))
+
+    def reset_hook_state(self):
+        for hook in self.stateful_hooks:
+            hook.reset_state()
 
     def call_hooks(self, hook_type, *args, **kwargs):
         for hook in self.hooks[hook_type]:
