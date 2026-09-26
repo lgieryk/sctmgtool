@@ -166,7 +166,7 @@ def serialize_configured_unit(unit: MusteredUnit) -> dict:
 
 
 def render_results_webp(histograms) -> bytes:
-    figure = draw_histograms(histograms, {"figsize": (15, 3), "dpi": 72})
+    figure = draw_histograms(histograms, {"figsize": (11, 2.5), "dpi": 100})
 
     output = io.BytesIO()
     canvas = FigureCanvasAgg(figure)
