@@ -97,6 +97,7 @@ def simulate_clash(
         batches = select_weapons(attacker, defender, clash_type)
 
         for _ in range(roll_count):
+            context.reset_hook_state()
             total_damage = 0
             for batch in batches:
                 kills_before = defender.num_killed(total_damage)
