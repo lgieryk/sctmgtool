@@ -319,8 +319,6 @@ def attack_pool_size(batch: WeaponBatch, defender: MusteredUnit) -> int:
 
 
 def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUnit, ctx: HookContext | None = None) -> int:
-    # pylint: disable=protected-access
-
     if ctx is None:
         ctx = HookContext()
 
@@ -343,8 +341,9 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
 
     armour_bypass = DicePool.empty()
 
-    if batch.weapon.tags & Tag._Precision:
-        attack_pool.transfer_dice_to(armour_bypass, up_to=batch.weapon.tags.precision())
+    precision = batch.weapon.tags.precision()
+    if precision:
+        attack_pool.transfer_dice_to(armour_bypass, up_to=precision)
 
     # 2. Resolve surge
     surge_result = roll_surge(batch.weapon, defender)
@@ -353,8 +352,9 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
     # TODO: dodge - drop from armour_bypass
     armour_bypass.transfer_dice_to(damage_pool)
 
-    if batch.weapon.tags & Tag._CriticalHit:
-        armour_pool.transfer_dice_to(damage_pool, up_to=batch.weapon.tags.critical_hit())
+    critical_hit = batch.weapon.tags.critical_hit()
+    if critical_hit:
+        armour_pool.transfer_dice_to(damage_pool, up_to=critical_hit)
 
     # 3. Armour rolls
     armour_args = hooks.ArmourHookArgs(defender.armour)
@@ -373,18 +373,21 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
     if batch.weapon.type_letter in defender.evade_reroll:
         assert defender.evade is not None
         success_val = defender.evade
-        if Tag._AntiEvade & batch.weapon.tags:
-            success_val += batch.weapon.tags.anti_evade()
+        anti_evade = batch.weapon.tags.anti_evade()
+        if anti_evade:
+            success_val += anti_evade
         damage_pool.roll()
         damage_pool.transfer_dice_to(discard_pool, afp(lambda x: x >= success_val))
 
     dmg_per_hit = batch.weapon.damage
-    if batch.weapon.tags & Tag._PierceArmoured:
+    pierce_armoured = batch.weapon.tags.pierce_armoured()
+    pierce_light = batch.weapon.tags.pierce_light()
+    if pierce_armoured:
         if defender.tags & Tag.Armoured:
-            dmg_per_hit = batch.weapon.tags.pierce_armoured()
-        assert Tag._PierceLight not in batch.weapon.tags
-    if batch.weapon.tags & Tag._PierceLight and defender.tags & Tag.Light:
-        dmg_per_hit = batch.weapon.tags.pierce_light()
+            dmg_per_hit = pierce_armoured
+        assert not pierce_light
+    if pierce_light and defender.tags & Tag.Light:
+        dmg_per_hit = pierce_light
 
     damage_args = hooks.DamageHookArgs(dmg_per_hit)
     ctx.call_hooks(Hook.ModifyDamage, hooks.RollHookArgs(attacker, batch, defender), damage_args)
