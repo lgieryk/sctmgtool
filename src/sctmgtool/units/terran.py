@@ -322,7 +322,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
             Upgrade("Indomitable", upgrade_type=Upgrade.Type.Other),
             Upgrade("Point Blank", upgrade_type=Upgrade.Type.Other),
             Upgrade(
-                "! Shaped Blast",
+                "Shaped Blast",
                 message="Once per Game. When this Unit declares a Ranged Attack action. If this Unit has SIEGE MODE Status, its weapon gains PINPOINT and LOCKED IN (4).",
                 cost=Cost(10),
                 apply=lambda unit: unit.weapon("Shock Cannon").buff_roa(4) or unit.weapon("Shock Cannon").add_tag(Tag.Pinpoint | Tag.LockedIn4),
