@@ -2,7 +2,7 @@
 # see NOTICE.txt in this directory. They are NOT covered by the project's MIT
 # License.
 
-from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
+from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, StatefulHook, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
 
 
 def _activate_corrosive_bile_only(unit):
@@ -17,6 +17,19 @@ def _activate_corrosive_bile_only(unit):
 def _potent_bile(_, roll, armour):
     if roll.weapon_batch.weapon.name == "! Corrosive Bile":
         armour.value = min(6, armour.value + 1)
+
+
+class _AncillaryCarapaceHook(StatefulHook):
+    def __init__(self):
+        self.used = False
+
+    def reset_state(self):
+        self.used = False
+
+    def __call__(self, owner, roll, tough):
+        if owner is roll.defender and not self.used:
+            tough.value = max(tough.value, 1)
+            self.used = True
 
 
 ZERG_UNITS: tuple[Unit, ...] = (
@@ -78,7 +91,8 @@ ZERG_UNITS: tuple[Unit, ...] = (
                 "Ancillary Carapace",
                 cost=Cost(20, 40),
                 message="This Unit gains TOUGH (1) on the first Armour Roll of each Activation.",
-                apply=lambda unit: unit.add_tag(Tag.Tough1),
+                apply={Hook.ModifyTough: _AncillaryCarapaceHook()},
+                upgrade_type=Upgrade.Type.Defensive,
             ),
             Upgrade(
                 "Lurking",

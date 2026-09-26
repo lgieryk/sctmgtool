@@ -362,8 +362,10 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
 
     armour_pool.roll()
     armour_pool.transfer_dice_to(discard_pool, afp(lambda x: x >= armour_args.value))
-    if defender.tags & Tag._Tough:
-        armour_pool.transfer_dice_to(discard_pool, up_to=defender.tags.tough())
+
+    tough_args = hooks.ToughHookArgs(defender.tags.tough())
+    ctx.call_hooks(Hook.ModifyTough, hooks.RollHookArgs(attacker, batch, defender), tough_args)
+    armour_pool.transfer_dice_to(discard_pool, up_to=tough_args.value)
 
     armour_pool.transfer_dice_to(damage_pool)
 

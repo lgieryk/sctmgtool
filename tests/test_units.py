@@ -1,15 +1,42 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Łukasz Gieryk
 
+from copy import deepcopy
+from unittest.mock import patch
+
 from sctmgtool import hooks
-from sctmgtool.base import Hook, Tag
-from sctmgtool.tools import HookContext, MusteredUnit
+from sctmgtool.base import Hook, Tag, Weapon
+from sctmgtool.histogram import simulate_clash
+from sctmgtool.tools import ClashType, HookContext, MusteredUnit, WeaponBatch
 from sctmgtool.units import ALL_UNITS
 
 
 def muster(name: str, config=None):
     prototype = next(unit for unit in ALL_UNITS if unit.name == name)
     return MusteredUnit.make(prototype, config or {})
+
+
+def clone(name: str):
+    prototype = next(unit for unit in ALL_UNITS if unit.name == name)
+    return deepcopy(prototype)
+
+
+def test_ancillary_carapace_applies_tough_only_to_first_weapon_of_each_clash():
+    attacker = MusteredUnit.make(clone("Marine"), {})
+    weapons = (
+        Weapon("First", 12, Tag.Ground, 1, "!", None, None, 1),
+        Weapon("Second", 12, Tag.Ground, 1, "!", None, None, 1),
+    )
+    attacker.weapon_batches = [WeaponBatch(1, weapon) for weapon in weapons]
+
+    defender = MusteredUnit.make(clone("Hydralisk"), {"Ancillary Carapace": True}, is_attacker=False)
+    defender.armour = 7
+    defender.shield = 0
+
+    with patch("sctmgtool.tools.random.choices", side_effect=lambda _, k: [1] * k):
+        histogram = simulate_clash(attacker, defender, roll_count=2)[ClashType.Ranged]
+
+    assert histogram.damage[1] == 100
 
 
 def test_ravager_corrosive_bile_weapon_combinations():
