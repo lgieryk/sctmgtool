@@ -99,9 +99,9 @@ def test_muster_weapons():
 def test_mustered_unit_str_includes_squad_and_role_upgrade_points():
     prototype = clone("Marine")
     prototype.upgrades = (
-        Upgrade("Attack", {}, cost=Cost(20, 30, points=2), upgrade_type=Upgrade.Type.Offensive),
-        Upgrade("Defense", {}, cost=Cost(40, 60, points=3), upgrade_type=Upgrade.Type.Defensive),
-        Upgrade("Same cost", {}, cost=Cost(10), upgrade_type=Upgrade.Type.Offensive),
+        Upgrade("Attack", {}, cost=Cost(20, 30, points=2), flags=Upgrade.Flags.TypeOffensive),
+        Upgrade("Defense", {}, cost=Cost(40, 60, points=3), flags=Upgrade.Flags.TypeDefensive),
+        Upgrade("Same cost", {}, cost=Cost(10), flags=Upgrade.Flags.TypeOffensive),
     )
 
     attacker_without_upgrades = MusteredUnit.make(prototype, {}, is_attacker=True)
@@ -177,11 +177,11 @@ def test_process_units():
     def upgrade(name: str):
         return next(upgrade for upgrade in marine.upgrades if upgrade.name == name)
 
-    assert upgrade("Combat Shield").upgrade_type is None
+    assert upgrade("Combat Shield").flags is Upgrade.Flags.TypeUnset
     process_unit_list(units)
-    assert upgrade("Combat Shield").upgrade_type == Upgrade.Type.Defensive
-    assert upgrade("Bayonet").upgrade_type == Upgrade.Type.Offensive
-    assert upgrade("Useless").upgrade_type == Upgrade.Type.Other
+    assert upgrade("Combat Shield").flags == Upgrade.Flags.TypeDefensive
+    assert upgrade("Bayonet").flags == Upgrade.Flags.TypeOffensive
+    assert upgrade("Useless").flags == Upgrade.Flags.TypeOther
 
 
 def test_unit_buff():

@@ -50,9 +50,9 @@ def get_units_json() -> str:
 
 def serialize_upgrade(upgrade, index):
     upgrade_types = []
-    if Upgrade.Type.Offensive in upgrade.upgrade_type:
+    if Upgrade.Flags.TypeOffensive in upgrade.flags:
         upgrade_types.append("offensive")
-    if Upgrade.Type.Defensive in upgrade.upgrade_type:
+    if Upgrade.Flags.TypeDefensive in upgrade.flags:
         upgrade_types.append("defensive")
 
     return {
@@ -89,7 +89,7 @@ def serialize_unit(unit):
             }
             for weapon in unit.weapons
         ],
-        "upgrades": [serialize_upgrade(upgrade, index) for index, upgrade in enumerate(unit.upgrades) if upgrade.upgrade_type != Upgrade.Type.Other],
+        "upgrades": [serialize_upgrade(upgrade, index) for index, upgrade in enumerate(unit.upgrades) if Upgrade.Flags.TypeOther not in upgrade.flags],
     }
 
 
