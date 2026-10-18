@@ -419,7 +419,14 @@ def process_unit_list(units):
     for unit in units:
         # Grant the generic evade reroll for units with evade
         if unit.evade is not None:
-            unit.upgrades = (*unit.upgrades, Upgrade("! Generic Evade-All", lambda unit: unit.grant_reroll("REC")))
+            unit.upgrades = (
+                *unit.upgrades,
+                Upgrade(
+                    "! Generic Evade-All",
+                    lambda unit: unit.grant_reroll("REC"),
+                    flags=Upgrade.Flags.Workaround,
+                ),
+            )
 
         # Decide if upgrades are offensive or defensive
         for upgrade in unit.upgrades:

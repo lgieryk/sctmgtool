@@ -171,17 +171,26 @@ def test_num_killed():
 
 def test_process_units():
     marine = clone("Marine")
-    marine.upgrades = (*marine.upgrades, Upgrade("Useless", apply=lambda x: True))
+    marine.upgrades = (
+        *marine.upgrades,
+        Upgrade("Useless", apply=lambda x: True),
+        Upgrade("Workaround", apply=lambda x: True, flags=Upgrade.Flags.Workaround),
+    )
     units = (clone("Zergling"), marine)
 
-    def upgrade(name: str):
-        return next(upgrade for upgrade in marine.upgrades if upgrade.name == name)
+    def upgrade(unit, name: str):
+        return next(upgrade for upgrade in unit.upgrades if upgrade.name == name)
 
-    assert upgrade("Combat Shield").flags is Upgrade.Flags.TypeUnset
+    assert upgrade(marine, "Combat Shield").flags is Upgrade.Flags.TypeUnset
+
     process_unit_list(units)
-    assert upgrade("Combat Shield").flags == Upgrade.Flags.TypeDefensive
-    assert upgrade("Bayonet").flags == Upgrade.Flags.TypeOffensive
-    assert upgrade("Useless").flags == Upgrade.Flags.TypeOther
+
+    assert upgrade(marine, "Combat Shield").flags == Upgrade.Flags.TypeDefensive
+    assert upgrade(marine, "Bayonet").flags == Upgrade.Flags.TypeOffensive
+    assert upgrade(marine, "Useless").flags == Upgrade.Flags.TypeOther
+    assert upgrade(marine, "Workaround").flags == Upgrade.Flags.TypeOther | Upgrade.Flags.Workaround
+    assert marine.has_upgrade("! Generic Evade-All")
+    assert upgrade(marine, "! Generic Evade-All").flags == Upgrade.Flags.TypeDefensive | Upgrade.Flags.Workaround
 
 
 def test_unit_buff():

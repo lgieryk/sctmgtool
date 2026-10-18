@@ -95,13 +95,17 @@ ZERG_UNITS: tuple[Unit, ...] = (
                 flags=Upgrade.Flags.TypeDefensive,
             ),
             Upgrade(
-                "Lurking",
+                "! Lurking",
                 cost=Cost(10, 20),
                 message="If this Unit has Stationary Status, it is eligible to make an Evade Roll against the first Ranged Attack targeting it this Round.",
                 apply=lambda unit: unit.grant_reroll("R"),
+                flags=Upgrade.Flags.Workaround,
             ),
             Upgrade(
-                "! Lurking + ON CREEP", message="If this Unit is ON CREEP, it gains +1 Modifier to this Evade Roll.", apply=lambda unit: unit.buff_evade(1)
+                "! Lurking + ON CREEP",
+                message="If this Unit is ON CREEP, it gains +1 Modifier to this Evade Roll.",
+                apply=lambda unit: unit.buff_evade(1),
+                flags=Upgrade.Flags.Workaround,
             ),
             Upgrade("Squadron", flags=Upgrade.Flags.TypeOther),
             Upgrade("Burrow Ambush", flags=Upgrade.Flags.TypeOther),
@@ -290,8 +294,15 @@ ZERG_UNITS: tuple[Unit, ...] = (
                 message="For each model in this Unit, set one Corrosive Bile token on the battlefield Within 14\" of that model. These tokens are not removed if this Unit is Destroyed. At the End of the Assault Phase, each Unit suffers HITS 5 (1) effect for each of this Unit's Corrosive Bile tokens it is Within 1\" of. Then, remove all of this Unit's Corrosive Bile tokens from the battlefield. If multiple effects trigger at the End of the Assault Phase, resolve them in the order specified in Part 8.9.4.",
                 cost=Cost(points=1),
                 apply=Upgrade.activate_weapon,
+                flags=Upgrade.Flags.Workaround,
             ),
-            Upgrade("! Corrosive Bile (2)", _activate_corrosive_bile_only, message="Use instead of Plasma Discharge.", cost=Cost(points=1)),
+            Upgrade(
+                "! Corrosive Bile (2)",
+                _activate_corrosive_bile_only,
+                message="Use instead of Plasma Discharge.",
+                cost=Cost(points=1),
+                flags=Upgrade.Flags.Workaround,
+            ),
             Upgrade("Deep Tunnel", flags=Upgrade.Flags.TypeOther),
             Upgrade("Burrow Ambush", flags=Upgrade.Flags.TypeOther),
             Upgrade(

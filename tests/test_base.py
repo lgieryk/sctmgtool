@@ -118,6 +118,12 @@ def test_str():
     assert Upgrade("weapon", Upgrade.activate_weapon).message == "Upgrade weapon"
     assert Upgrade("weapon", Upgrade.activate_weapon, message="Weapon rule").message == "Weapon rule"
     assert Upgrade("weapon", Upgrade.activate_weapon, message="").message == ""
+    assert repr(Upgrade("replaced", {}, flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround)) == (
+        "Upgrade('replaced', message='', cost=None, flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround)"
+    )
+    workaround = Upgrade("workaround", {}, flags=Upgrade.Flags.Workaround)
+    assert workaround.flags == Upgrade.Flags.TypeUnset | Upgrade.Flags.Workaround
+    assert repr(workaround) == "Upgrade('workaround', message='', cost=None, flags=Upgrade.Flags.Workaround)"
 
     unit = Unit(Faction.Terran, "name", UnitType.Core, 2, (), 1, speed, 2, 3, 4, (weapon,), (), Tag.Unique, ())
     assert str(unit) == "name SHLD:1 EVA:2+ ARM:3+ HP:4 SIZ:2 Unique"

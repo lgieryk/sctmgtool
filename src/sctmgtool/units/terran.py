@@ -115,7 +115,11 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
                 message='Select one Enemy Unit Within 12". Whenever a Friendly Goliath Unit targets that enemy with an Autocannon, that weapon gains Surge Type: Light, Armoured, and S Dice: D3+1.',
                 apply=lambda unit: unit.weapon("Autocannon").add_surge_tag(Tag.Light | Tag.Armoured) or unit.weapon("Autocannon").set_surge_die(SurgeDie.D3P1),
             ),
-            Upgrade("! Activate LockedIn6", lambda unit: unit.weapon("Scatter Missiles").buff_roa(6)),
+            Upgrade(
+                "! Activate LockedIn6",
+                lambda unit: unit.weapon("Scatter Missiles").buff_roa(6),
+                flags=Upgrade.Flags.Workaround,
+            ),
             Upgrade("Indomitable", flags=Upgrade.Flags.TypeOther),
         ),
     ),
@@ -180,7 +184,11 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
         tags=Tag.Unique | Tag.Biological | Tag.Ground,
         upgrades=(
             Upgrade("C-14 rifle", Upgrade.activate_weapon),
-            Upgrade('! Activate BURST FIRE (3) on C-14 Rifle - target within 8"', lambda unit: unit.weapon("C-14 rifle").buff_roa(3)),
+            Upgrade(
+                '! Activate BURST FIRE (3) on C-14 Rifle - target within 8"',
+                lambda unit: unit.weapon("C-14 rifle").buff_roa(3),
+                flags=Upgrade.Flags.Workaround,
+            ),
             Upgrade("Commander", flags=Upgrade.Flags.TypeOther),
             Upgrade("Freedom Fighters", flags=Upgrade.Flags.TypeOther),
             Upgrade("Orders", flags=Upgrade.Flags.TypeOther),
@@ -300,6 +308,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
                     Hook.ModifyOwner: lambda unit: Upgrade.activate_weapon(unit, "Shock Cannon"),
                     Hook.ModifyDamage: _aftershock_rounds,
                 },
+                flags=Upgrade.Flags.Workaround,
             ),
             Upgrade("Large", flags=Upgrade.Flags.TypeOther),
             Upgrade(
@@ -352,6 +361,7 @@ def apply_jim_raynors_orders(unit: Unit) -> list[Upgrade]:
                 "! Orders / Jim Raynor",
                 message='Apply active Orders of a friendly Jim Raynor within 8" - Unit’s first used weapon gains the CRITICAL HIT (2)',
                 apply=lambda mustered_unit, query=weapon_query: mustered_unit.weapon(query).add_tag(Tag.CriticalHit2),
+                flags=Upgrade.Flags.Workaround,
             )
         ]
 
@@ -388,6 +398,7 @@ def apply_jim_raynors_orders(unit: Unit) -> list[Upgrade]:
             f"! Orders / Jim Raynor / {'/'.join(weapon_names)}",
             message='Apply active Orders of a friendly Jim Raynor within 8" - Unit’s first used weapon gains the CRITICAL HIT (2)',
             apply=lambda mustered_unit: mustered_unit.weapon(weapon_names).add_tag(Tag.CriticalHit2),
+            flags=Upgrade.Flags.Workaround,
         )
 
     return [make_orders_upgrade(group) for group in weapon_groups]
