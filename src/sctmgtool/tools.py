@@ -187,8 +187,8 @@ class MusteredUnit(Unit):
         configuration = 0
         for i, upgrade in enumerate(prototype.upgrades):
             if config.get(upgrade.name, False):
-                is_offensive = upgrade.upgrade_type is None or Upgrade.Type.Offensive in upgrade.upgrade_type
-                is_defensive = upgrade.upgrade_type is None or Upgrade.Type.Defensive in upgrade.upgrade_type
+                is_offensive = Upgrade.Flags.TypeUnset in upgrade.flags or Upgrade.Flags.TypeOffensive in upgrade.flags
+                is_defensive = Upgrade.Flags.TypeUnset in upgrade.flags or Upgrade.Flags.TypeDefensive in upgrade.flags
                 if (attacker and is_offensive) or (not attacker and is_defensive):
                     configuration |= 1 << i
 
@@ -423,12 +423,12 @@ def process_unit_list(units):
 
         # Decide if upgrades are offensive or defensive
         for upgrade in unit.upgrades:
-            if upgrade.upgrade_type is None:  # and hook is target unit
+            if Upgrade.Flags.TypeUnset in upgrade.flags:  # and hook is target unit
                 w = MusteredUnit.make(unit, config={upgrade.name: True})
                 wo = MusteredUnit.make(unit, config={upgrade.name: False})
 
                 if w.weapons != wo.weapons or w.weapon_batches != wo.weapon_batches:
-                    upgrade.upgrade_type = Upgrade.Type.Offensive
+                    upgrade.flags |= Upgrade.Flags.TypeOffensive
 
                 w.weapons = wo.weapons = None
                 w.weapon_batches = wo.weapon_batches = None
@@ -436,11 +436,13 @@ def process_unit_list(units):
                 w.fingerprint = wo.fingerprint = None
 
                 if w != wo:
-                    upgrade.upgrade_type = Upgrade.Type.Defensive
+                    upgrade.flags |= Upgrade.Flags.TypeDefensive
 
-                if upgrade.upgrade_type is None:
-                    upgrade.upgrade_type = Upgrade.Type.Other
+                upgrade.flags ^= Upgrade.Flags.TypeUnset
+
+                if Upgrade.Flags.TypeOffensive not in upgrade.flags and Upgrade.Flags.TypeDefensive not in upgrade.flags:
+                    upgrade.flags |= Upgrade.Flags.TypeOther
                     logger.warning("Useless upgrade: %s", upgrade.name)
 
-            if Upgrade.Type.Offensive in upgrade.upgrade_type and Upgrade.Type.Defensive in upgrade.upgrade_type:
+            if Upgrade.Flags.TypeOffensive in upgrade.flags and Upgrade.Flags.TypeDefensive in upgrade.flags:
                 raise RuntimeError(f"{upgrade} is both: offensive and defensive; combination not supported")

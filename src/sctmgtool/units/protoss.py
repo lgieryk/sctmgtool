@@ -51,8 +51,8 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 apply=lambda unit: unit.weapon("Glaive Cannon").add_tag(Tag.AntiEvade2),
             ),
             Upgrade("Glaive Strike", cost=Cost(20), apply=Upgrade.activate_weapon),
-            Upgrade("Psionic Presence", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Psionic Transfer", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Psionic Presence", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Psionic Transfer", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -76,10 +76,10 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
         tags=Tag.Biological | Tag.Psionic | Tag.Ground | Tag.Unique,
         upgrades=(
             Upgrade("Twilight Blades Sweep", Upgrade.activate_weapon),
-            Upgrade("Commander", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Phase Prism", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Hierarch’s Stand", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Lightning Dash", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Commander", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Phase Prism", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Hierarch’s Stand", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Lightning Dash", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -143,14 +143,14 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 message="Use before this Unit makes an Armour Roll. If this Unit has the Shielded Status, It gains TOUGH (2) for this roll.",
                 cost=Cost(20, points=1),
                 apply=lambda unit: unit.add_tag(Tag.Tough2),
-                upgrade_type=Upgrade.Type.Defensive,
+                flags=Upgrade.Flags.TypeDefensive,
             ),
             Upgrade(
                 "Improved Barrier",
                 message="Use when this Unit is selected as the target of an attack. If this Unit has the Shielded Status, the Damage characteristic of the attacking weapon is treated as a maximum of 1 for this attack.",
                 cost=Cost(),
                 apply={Hook.ModifyDamage: _improved_barrier},
-                upgrade_type=Upgrade.Type.Defensive,
+                flags=Upgrade.Flags.TypeDefensive,
             ),
             Upgrade(
                 "Fury Unyielding",
@@ -164,7 +164,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 cost=Cost(20),
                 apply=lambda unit: unit.weapon("@type_letter==R").add_tag(Tag.Precision1),
             ),
-            Upgrade("Indomitable", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Indomitable", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -185,9 +185,9 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
         squad=(Squad(Range(3, 4), 1, 210),),
         tags=Tag.Biological | Tag.Ground | Tag.Light,
         upgrades=(
-            Upgrade("Path of Shadows", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Nerazim Farsight", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Psionic Transfer", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Path of Shadows", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Nerazim Farsight", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Psionic Transfer", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -226,8 +226,8 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 message="This Unit is eligible to make an Evade roll against all attacks targeting it.",
                 apply=lambda unit: unit.grant_reroll("REC"),
             ),
-            Upgrade("Leg Enhancements", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Charge", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Leg Enhancements", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Charge", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -245,9 +245,9 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
         squad=(Squad(Range(1, 1), 0, 0),),
         tags=Tag.Armoured | Tag.Ground,
         upgrades=(
-            Upgrade("Structure", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Khalai Ingenuity", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Warp Conduit", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Structure", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Khalai Ingenuity", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Warp Conduit", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -268,11 +268,11 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
         squad=(Squad(Range(2, 2), 1, 130),),
         tags=Tag.Light | Tag.Mechanical | Tag.Psionic | Tag.Ground,
         upgrades=(
-            Upgrade("Restoration", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Force Field", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Guardian Shield", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Solid-Field Projectors", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Hallucination", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Restoration", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Force Field", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Guardian Shield", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Solid-Field Projectors", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Hallucination", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -296,10 +296,10 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
         ),
         tags=Tag.Armoured | Tag.Mechanical | Tag.Ground,
         upgrades=(
-            Upgrade("Squadron", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Path of Shadows", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Blink", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Fury of the Nerazim", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Squadron", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Path of Shadows", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Blink", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Fury of the Nerazim", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -332,9 +332,9 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 message="When this Unit resolves IMPACT, each eligible model generates 1 additional IMPACT die.",
                 apply=lambda unit: unit.weapon("@range==C").buff_roa(1),
             ),
-            Upgrade("Leg Enhancements", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Charge", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Zealous Round", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Leg Enhancements", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Charge", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Zealous Round", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -356,23 +356,23 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
         squad=(Squad(Range(1, 1), 1, 230),),
         tags=Tag.Biological | Tag.Ground | Tag.Psionic | Tag.Unique,
         upgrades=(
-            Upgrade("One With the Shadows", upgrade_type=Upgrade.Type.Other),
+            Upgrade("One With the Shadows", flags=Upgrade.Flags.TypeOther),
             Upgrade(
                 "Prophetic Vision",
                 message="REPEATABLE. Use when this Unit is selected as the target of an attack. This Unit's Evade characteristic is treated as 4+ against this attack and cannot be modified.",
                 cost=Cost(points=1),
                 apply=lambda unit: unit.grant_reroll("REC") or unit.buff_evade(1),
-                upgrade_type=Upgrade.Type.Defensive,
+                flags=Upgrade.Flags.TypeDefensive,
             ),
             Upgrade(
                 "Sentenced to Death",
                 message="Target Enemy Unit on the battlefield. Whenever Zeratul makes a Close Combat Attack targeting the selected Unit, its weapon gains CRITICAL HIT (2).",
                 cost=Cost(points=1),
                 apply=lambda unit: unit.weapon("Master Warp Blade").add_tag(Tag.CriticalHit2),
-                upgrade_type=Upgrade.Type.Offensive,
+                flags=Upgrade.Flags.TypeOffensive,
             ),
-            Upgrade("Void Prison", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Void Blink", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Void Prison", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Void Blink", flags=Upgrade.Flags.TypeOther),
             Upgrade(
                 "! Shadow Strike",
                 message="All Enemy Units Engaged with this Unit suffer HITS 4 (1).",
@@ -400,7 +400,7 @@ def _apply_common_skills(units):
     guardian_shield = Upgrade(
         "! Guardian Shield / Sentry",
         message='Apply active GS of a friendly Sentry unit within 4" - All Ranged Attacks are made with 1 fewer die in the Attack Pool.',
-        upgrade_type=Upgrade.Type.Defensive,
+        flags=Upgrade.Flags.TypeDefensive,
         apply={Hook.RollPoolsInitiated: _guardian_shield_effect},
     )
 

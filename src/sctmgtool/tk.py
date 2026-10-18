@@ -84,24 +84,24 @@ class RollCache(Cache):
         elif isinstance(obj, (list, tuple)):
             return [RollCache.normalize(x) for x in obj]
         elif isinstance(obj, Upgrade):
-            return (obj.name, RollCache.normalize(obj.upgrade_type), obj.message, RollCache.normalize(obj.cost))
+            return (obj.name, RollCache.normalize(obj.flags), obj.message, RollCache.normalize(obj.cost))
         return obj
 
     def worker_func(self, thread_id: int):
-        def upgrades(unit: Unit, ut: Upgrade.Type):
-            return [u for u in unit.upgrades if u.upgrade_type == ut]
+        def upgrades(unit: Unit, ut: Upgrade.Flags):
+            return [u for u in unit.upgrades if ut in u.flags]
 
         def make_configs(unit, ut):
             upg = upgrades(unit, ut)
             sizes = [squad.models.stop for squad in unit.squad]
-            size_key = "_squad_size" if ut == Upgrade.Type.Offensive else "_squad_size_def"
+            size_key = "_squad_size" if ut == Upgrade.Flags.TypeOffensive else "_squad_size_def"
 
             for size in sizes:
                 for flags in product([False, True], repeat=len(upg)):
                     yield {size_key: size, **{upgrade.name: enabled for upgrade, enabled in zip(upg, flags)}}
 
         for a, d in product(self.units, self.units):
-            for i, (ac, dc) in enumerate(product(make_configs(a, Upgrade.Type.Offensive), make_configs(d, Upgrade.Type.Defensive))):
+            for i, (ac, dc) in enumerate(product(make_configs(a, Upgrade.Flags.TypeOffensive), make_configs(d, Upgrade.Flags.TypeDefensive))):
                 if self.stop_event.is_set():
                     return
 
@@ -229,7 +229,7 @@ def tkinter_main(units: list[Unit]):
         weapon_labels.clear()
 
         for upgrade in attacker.prototype.upgrades:
-            if Upgrade.Type.Offensive in upgrade.upgrade_type:
+            if Upgrade.Flags.TypeOffensive in upgrade.flags:
                 var = ctk.BooleanVar(value=config[attacker.prototype.name][upgrade.name])
                 attacker.upgrade_vars.append(var)
                 cb = ctk.CTkCheckBox(u_frame, text=str(upgrade), variable=var, command=partial(on_upgrade_toggled, attacker, upgrade.name, var))
@@ -256,7 +256,7 @@ def tkinter_main(units: list[Unit]):
         defender.upgrade_vars.clear()
 
         for upgrade in defender.prototype.upgrades:
-            if Upgrade.Type.Defensive in upgrade.upgrade_type:
+            if Upgrade.Flags.TypeDefensive in upgrade.flags:
                 var = ctk.BooleanVar(value=config[defender.prototype.name][upgrade.name])
                 defender.upgrade_vars.append(var)
                 cb = ctk.CTkCheckBox(u_frame, text=str(upgrade), variable=var, command=partial(on_upgrade_toggled, defender, upgrade.name, var))

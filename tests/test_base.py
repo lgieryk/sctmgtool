@@ -129,7 +129,7 @@ def test_unit_structure_upgrade():
     assert not unit.has_upgrade("Structure")
     assert not unit.is_structure
 
-    unit.upgrades = (Upgrade("Structure", upgrade_type=Upgrade.Type.Other),)
+    unit.upgrades = (Upgrade("Structure", flags=Upgrade.Flags.TypeOther),)
 
     assert unit.has_upgrade("Structure")
     assert unit.is_structure

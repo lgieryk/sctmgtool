@@ -116,7 +116,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
                 apply=lambda unit: unit.weapon("Autocannon").add_surge_tag(Tag.Light | Tag.Armoured) or unit.weapon("Autocannon").set_surge_die(SurgeDie.D3P1),
             ),
             Upgrade("! Activate LockedIn6", lambda unit: unit.weapon("Scatter Missiles").buff_roa(6)),
-            Upgrade("Indomitable", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Indomitable", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -155,8 +155,8 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
             Upgrade(
                 "Kinetic Foam", cost=Cost(20, 40), message="Increase this Unit's Hit Points characteristic by 1.", apply=lambda unit: unit.buff_hit_points(1)
             ),
-            Upgrade("Concussive Shells", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Laser Targeting Systems", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Concussive Shells", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Laser Targeting Systems", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -181,9 +181,9 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
         upgrades=(
             Upgrade("C-14 rifle", Upgrade.activate_weapon),
             Upgrade('! Activate BURST FIRE (3) on C-14 Rifle - target within 8"', lambda unit: unit.weapon("C-14 rifle").buff_roa(3)),
-            Upgrade("Commander", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Freedom Fighters", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Orders", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Commander", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Freedom Fighters", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Orders", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -201,13 +201,13 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
         squad=(Squad(Range(2, 3), 1, 110),),
         tags=Tag.Biological | Tag.Light | Tag.Ground,
         upgrades=(
-            Upgrade("Life Support", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Advanced Medic Facilities", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Restoration", upgrade_type=Upgrade.Type.Other),
-            Upgrade("A-13 Flash Grenade Launcher", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Stabilizer Medpacks", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Medpack", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Optical Flare", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Life Support", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Advanced Medic Facilities", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Restoration", flags=Upgrade.Flags.TypeOther),
+            Upgrade("A-13 Flash Grenade Launcher", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Stabilizer Medpacks", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Medpack", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Optical Flare", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -225,9 +225,9 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
         squad=(Squad(Range(1, 1), 0, 0),),
         tags=Tag.Armoured | Tag.Flying | Tag.Mechanical,
         upgrades=(
-            Upgrade("Point Defense Laser", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Gliding", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Structure", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Point Defense Laser", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Gliding", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Structure", flags=Upgrade.Flags.TypeOther),
         ),
     ),
     Unit(
@@ -254,8 +254,8 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
                 cost=Cost(points=1),
                 apply=lambda unit: unit.weapon(["C-14 rifle", "@range==E"]).add_tag(Tag.Precision3),
             ),
-            Upgrade("Raiders Roll!", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Rapid Reinforcements", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Raiders Roll!", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Rapid Reinforcements", flags=Upgrade.Flags.TypeOther),
             Upgrade(
                 "Slugthrower",
                 message='When this Unit makes a Ranged Attack with a C-14 Rifle and the target is Within 8", that weapon gains ANTI-EVADE (1).',
@@ -301,7 +301,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
                     Hook.ModifyDamage: _aftershock_rounds,
                 },
             ),
-            Upgrade("Large", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Large", flags=Upgrade.Flags.TypeOther),
             Upgrade(
                 "Heavy Plating",
                 message="When this Unit resolves an Armour Roll, it gains TOUGH (1), provided it does not currently have the SIEGE MODE Status.",
@@ -315,19 +315,19 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
                     "While this Unit has the SIEGE MODE Status, its Size characteristic is treated as if it was 3."
                 ),
                 cost=Cost(points=1),
-                upgrade_type=Upgrade.Type.Defensive,
+                flags=Upgrade.Flags.TypeDefensive,
                 apply=lambda unit: unit.set_size(3),
             ),
-            Upgrade("Coordinated Strike", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Indomitable", upgrade_type=Upgrade.Type.Other),
-            Upgrade("Point Blank", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Coordinated Strike", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Indomitable", flags=Upgrade.Flags.TypeOther),
+            Upgrade("Point Blank", flags=Upgrade.Flags.TypeOther),
             Upgrade(
                 "Shaped Blast",
                 message="Once per Game. When this Unit declares a Ranged Attack action. If this Unit has SIEGE MODE Status, its weapon gains PINPOINT and LOCKED IN (4).",
                 cost=Cost(10),
                 apply=lambda unit: unit.weapon("Shock Cannon").buff_roa(4) or unit.weapon("Shock Cannon").add_tag(Tag.Pinpoint | Tag.LockedIn4),
             ),
-            Upgrade("Smart Shells", upgrade_type=Upgrade.Type.Other),
+            Upgrade("Smart Shells", flags=Upgrade.Flags.TypeOther),
         ),
     ),
 )

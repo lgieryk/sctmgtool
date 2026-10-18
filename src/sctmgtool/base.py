@@ -261,12 +261,13 @@ class StatefulHook:
 
 
 class Upgrade:
-    class Type(Flag):
-        Other = auto()
-        Defensive = auto()
-        Offensive = auto()
+    class Flags(Flag):
+        TypeUnset = auto()
+        TypeOther = auto()
+        TypeDefensive = auto()
+        TypeOffensive = auto()
 
-    def __init__(self, name: str, /, apply: Callable | dict | None = None, *, message: str | None = None, cost=None, upgrade_type=None):
+    def __init__(self, name: str, /, apply: Callable | dict | None = None, *, message: str | None = None, cost=None, flags=Flags.TypeUnset):
         if apply is Upgrade.activate_weapon:
 
             def wrapper(unit):
@@ -292,7 +293,7 @@ class Upgrade:
 
         self.name = name
         self.apply = apply
-        self.upgrade_type = upgrade_type
+        self.flags = flags
         self.message = message
         self.cost = cost
 
