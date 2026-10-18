@@ -56,7 +56,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
             Weapon("Strike", "E", Tag.Ground, 1, 4, None, None, 1),
             Weapon("Glaive Strike", "E", Tag.Ground, 1, 4, Tag.Light, SurgeDie.D3, 1, tags=Tag.PierceLight2, exchange_for="Strike"),
         ),
-        squad=(Squad(Range(3, 4), 1, 150),),
+        squad=(Squad(Range(3, 4), 1, 160),),
         tags=Tag.Biological | Tag.Light | Tag.Ground,
         upgrades=(
             Upgrade(
@@ -109,7 +109,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
             ),
         ),
-        squad=(Squad(Range(1, 1), 1, 250),),
+        squad=(Squad(Range(1, 1), 1, 270),),
         tags=Tag.Biological | Tag.Psionic | Tag.Ground | Tag.Unique,
         upgrades=(
             Upgrade("Twilight Blades Sweep", Upgrade.activate_weapon),
@@ -376,7 +376,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
             ),
         ),
-        squad=(Squad(Range(2, 3), 2, 280),),
+        squad=(Squad(Range(2, 3), 2, 260),),
         tags=Tag.Biological | Tag.Light | Tag.Ground | Tag.Unique,
         upgrades=(
             Upgrade(
@@ -467,7 +467,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
             Weapon("Stomp", "E", Tag.Ground, 2, 5, None, None, 1),
         ),
         squad=(
-            Squad(Range(1, 1), 1, 170),
+            Squad(Range(1, 1), 1, 160),
             Squad(Range(2, 2), 2, 270),
         ),
         tags=Tag.Armoured | Tag.Mechanical | Tag.Ground,
@@ -688,7 +688,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
             ),
         ),
-        squad=(Squad(Range(2, 3), 2, 160),),
+        squad=(Squad(Range(2, 3), 2, 170),),
         tags=Tag.Biological | Tag.Light | Tag.Ground,
         upgrades=(
             Upgrade(
