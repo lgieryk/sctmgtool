@@ -51,7 +51,12 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 apply=lambda unit: unit.weapon("Glaive Cannon").add_tag(Tag.AntiEvade2),
             ),
             Upgrade("Glaive Strike", cost=Cost(20), apply=Upgrade.activate_weapon),
-            Upgrade("Psionic Presence", flags=Upgrade.Flags.TypeOther),
+            Upgrade(
+                "Psionic Presence",
+                message='All Weapons of Friendly Units targeting an Enemy Unit Within 4" of this Unit’s Shade token gain PRECISION (1).',
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
             Upgrade("Psionic Transfer", flags=Upgrade.Flags.TypeOther),
         ),
     ),
@@ -270,7 +275,12 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
         upgrades=(
             Upgrade("Restoration", flags=Upgrade.Flags.TypeOther),
             Upgrade("Force Field", flags=Upgrade.Flags.TypeOther),
-            Upgrade("Guardian Shield", flags=Upgrade.Flags.TypeOther),
+            Upgrade(
+                "Guardian Shield",
+                message='All Ranged Attacks targeting a Friendly Unit Within 4" (Line of Sight is not required) are made with 1 fewer die in the Attack Pool.',
+                cost=Cost(points=1),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
             Upgrade("Solid-Field Projectors", flags=Upgrade.Flags.TypeOther),
             Upgrade("Hallucination", flags=Upgrade.Flags.TypeOther),
         ),
@@ -373,6 +383,12 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
             ),
             Upgrade("Void Prison", flags=Upgrade.Flags.TypeOther),
             Upgrade("Void Blink", flags=Upgrade.Flags.TypeOther),
+            Upgrade(
+                "Shadow Strike",
+                message="All Enemy Units Engaged with this Unit suffer HITS 4 (1).",
+                cost=Cost(points=1),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
             Upgrade(
                 "! Shadow Strike",
                 message="All Enemy Units Engaged with this Unit suffer HITS 4 (1).",

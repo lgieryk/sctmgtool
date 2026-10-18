@@ -203,7 +203,7 @@ class MusteredUnit(Unit):
         unit.models = unit.fingerprint.squad_size
 
         def upgrade_exists(weapon_name):
-            return any(weapon_name == u.name for u in unit.upgrades)
+            return any(weapon_name == upgrade.name and Upgrade.Flags.ReplacedByWorkaround not in upgrade.flags for upgrade in unit.upgrades)
 
         default_added = []
 
@@ -416,7 +416,11 @@ def select_weapons(attacker: MusteredUnit, defender: MusteredUnit, clash_type: C
 
 
 def process_unit_list(units):
-    for unit in units:
+    processed_units = copy.deepcopy(units)
+
+    for unit in processed_units:
+        unit.upgrades = tuple(upgrade for upgrade in unit.upgrades if Upgrade.Flags.ReplacedByWorkaround not in upgrade.flags)
+
         # Grant the generic evade reroll for units with evade
         if unit.evade is not None:
             unit.upgrades = (
@@ -453,3 +457,5 @@ def process_unit_list(units):
 
             if Upgrade.Flags.TypeOffensive in upgrade.flags and Upgrade.Flags.TypeDefensive in upgrade.flags:
                 raise RuntimeError(f"{upgrade} is both: offensive and defensive; combination not supported")
+
+    return processed_units

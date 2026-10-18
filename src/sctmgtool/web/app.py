@@ -31,8 +31,7 @@ MAX_CONFIGURATION = 0x7FFFFFFF
 
 @lru_cache(maxsize=1)
 def get_units():
-    process_unit_list(ALL_UNITS)
-    return tuple(ALL_UNITS)
+    return tuple(process_unit_list(ALL_UNITS))
 
 
 @lru_cache(maxsize=1)

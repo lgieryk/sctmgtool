@@ -191,7 +191,17 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
             ),
             Upgrade("Commander", flags=Upgrade.Flags.TypeOther),
             Upgrade("Freedom Fighters", flags=Upgrade.Flags.TypeOther),
-            Upgrade("Orders", flags=Upgrade.Flags.TypeOther),
+            Upgrade(
+                "Orders",
+                message=(
+                    'REPEATABLE. Select another Friendly Biological Unit Within 8", spend CP and apply one of the following effects:\n\n'
+                    "1 CP: That Unit’s first used weapon gains the CRITICAL HIT (2).\n\n"
+                    "1 CP: That Unit ignores the Disengage penalty for the remainder of the Round.\n\n"
+                    "2 CP: Remove the Activation Marker from that Unit."
+                ),
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
         ),
     ),
     Unit(
@@ -298,6 +308,15 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
         squad=(Squad(Range(1, 1), 2, 220),),
         tags=Tag.Mechanical | Tag.Ground | Tag.Armoured,
         upgrades=(
+            Upgrade(
+                "Aftershock Rounds",
+                message=(
+                    "When this Unit has the SIEGE MODE Status, its Damage characteristic is treated as equal to "
+                    "the Size characteristic of the current target Unit (to a minimum of 1)."
+                ),
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
             Upgrade(
                 "! Shock Cannon / Aftershock Rounds",
                 message=(

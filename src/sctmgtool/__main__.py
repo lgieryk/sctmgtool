@@ -19,5 +19,4 @@ if __name__ == "__main__":
 
     freeze_support()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-    process_unit_list(ALL_UNITS)
-    tkinter_main(ALL_UNITS)
+    tkinter_main(process_unit_list(ALL_UNITS))
