@@ -215,6 +215,11 @@ def test_unit_buff():
     marine.buff_armour(2)
     assert marine.armour == 2  # Cannot get below 2
 
+    marine.debuff_armour(2)
+    assert marine.armour == 4
+    marine.debuff_armour(20)
+    assert marine.armour == 6  # Cannot get above 6
+
     assert marine.evade == 5
     marine.buff_evade(1)
     assert marine.evade == 4

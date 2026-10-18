@@ -164,6 +164,9 @@ class MusteredUnit(Unit):
     def buff_armour(self, value: int):
         self.armour = max(2, self.armour - value)
 
+    def debuff_armour(self, value: int):
+        self.armour = min(6, self.armour + value)
+
     def buff_hit_points(self, value: int):
         self.hit_points += value
 
