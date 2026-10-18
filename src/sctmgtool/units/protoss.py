@@ -378,8 +378,15 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 message="All Enemy Units Engaged with this Unit suffer HITS 4 (1).",
                 cost=Cost(points=1),
                 apply=Upgrade.activate_weapon,
+                flags=Upgrade.Flags.Workaround,
             ),
-            Upgrade("! Shadow Strike (2)", _activate_shadow_strike_only, message="Use instead of Master Warp Blade.", cost=Cost(points=1)),
+            Upgrade(
+                "! Shadow Strike (2)",
+                _activate_shadow_strike_only,
+                message="Use instead of Master Warp Blade.",
+                cost=Cost(points=1),
+                flags=Upgrade.Flags.Workaround,
+            ),
         ),
     ),
 )
@@ -400,7 +407,7 @@ def _apply_common_skills(units):
     guardian_shield = Upgrade(
         "! Guardian Shield / Sentry",
         message='Apply active GS of a friendly Sentry unit within 4" - All Ranged Attacks are made with 1 fewer die in the Attack Pool.',
-        flags=Upgrade.Flags.TypeDefensive,
+        flags=Upgrade.Flags.TypeDefensive | Upgrade.Flags.Workaround,
         apply={Hook.RollPoolsInitiated: _guardian_shield_effect},
     )
 
@@ -408,6 +415,7 @@ def _apply_common_skills(units):
         "! Psionic Presence / Adept",
         message="Apply PP of a friendly Adept's Shade token within 4\" - All Ranged and Close Combat weapons gain PRECISION (1)",
         apply=_psionic_presence_effect,
+        flags=Upgrade.Flags.Workaround,
     )
 
     for unit in units:

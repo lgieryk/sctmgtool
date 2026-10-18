@@ -266,6 +266,8 @@ class Upgrade:
         TypeOther = auto()
         TypeDefensive = auto()
         TypeOffensive = auto()
+        Workaround = auto()
+        ReplacedByWorkaround = auto()
 
     def __init__(self, name: str, /, apply: Callable | dict | None = None, *, message: str | None = None, cost=None, flags=Flags.TypeUnset):
         if apply is Upgrade.activate_weapon:
@@ -291,6 +293,9 @@ class Upgrade:
         else:
             assert isinstance(apply, dict)
 
+        if Upgrade.Flags.TypeOther not in flags and Upgrade.Flags.TypeDefensive not in flags and Upgrade.Flags.TypeOffensive not in flags:
+            flags |= Upgrade.Flags.TypeUnset
+
         self.name = name
         self.apply = apply
         self.flags = flags
@@ -308,7 +313,11 @@ class Upgrade:
         return self.cost.small
 
     def __repr__(self):
-        return f"Upgrade({self.name!r}, message={self.message!r}, cost={self.cost!r})"
+        flags = ""
+        if Upgrade.Flags.Workaround in self.flags or Upgrade.Flags.ReplacedByWorkaround in self.flags:
+            value = " | ".join(f"Upgrade.Flags.{flag.name}" for flag in Upgrade.Flags if flag is not Upgrade.Flags.TypeUnset and flag in self.flags)
+            flags = f", flags={value}"
+        return f"Upgrade({self.name!r}, message={self.message!r}, cost={self.cost!r}{flags})"
 
     @staticmethod
     def activate_weapon(unit, weapon_name: str):
