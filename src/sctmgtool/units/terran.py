@@ -36,8 +36,8 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
             Weapon("Bayonet", "E", Tag.Ground, 2, 5, None, None, 1, exchange_for="Strike"),
         ),
         squad=(
-            Squad(Range(4, 6), 1, 160),
-            Squad(Range(7, 9), 2, 210),
+            Squad(Range(4, 6), 1, 170),
+            Squad(Range(7, 9), 2, 220),
         ),
         tags=Tag.Biological | Tag.Light | Tag.Ground,
         upgrades=(
@@ -114,7 +114,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
                 flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
             ),
         ),
-        squad=(Squad(Range(1, 1), 2, 190),),
+        squad=(Squad(Range(1, 1), 2, 180),),
         tags=Tag.Armoured | Tag.Mechanical | Tag.Ground,
         upgrades=(
             Upgrade(
@@ -155,8 +155,8 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
             Weapon("Strike", "E", Tag.Ground, 2, 4, None, None, 1),
         ),
         squad=(
-            Squad(Range(2, 2), 1, 150),
-            Squad(Range(3, 4), 2, 280),
+            Squad(Range(2, 2), 1, 160),
+            Squad(Range(3, 4), 2, 290),
         ),
         tags=Tag.Armoured | Tag.Biological | Tag.Ground,
         upgrades=(
@@ -168,7 +168,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
             ),
             Upgrade(
                 "Veteran of Tarsonis",
-                cost=Cost(20, 30),
+                cost=Cost(20, 40),
                 message='While this Unit is Within 3" of a Mission Marker, its Armour characteristic is increased by 1.',
                 apply=lambda unit: unit.buff_armour(1),
             ),
@@ -194,15 +194,15 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
             Weapon("Commando Rifle", 18, Tag.Ground | Tag.Flying, 3, 3, Tag.Armoured, SurgeDie.D3, 1, tags=Tag.Bulky | Tag.PierceArmoured3),
             Weapon("“Justice” Revolver", 6, Tag.Ground, 2, 3, None, None, 2, tags=Tag.AntiEvade2 | Tag.Sidearm | Tag.Pinpoint),
             Weapon("Bayonet", "E", Tag.Ground, 2, 4, Tag.Light, SurgeDie.D3, 1),
-            Weapon("C-14 rifle", 12, Tag.Ground | Tag.Flying, 6, 3, Tag.Light, SurgeDie.D3P1, 1, tags=Tag.BurstFire, exchange_for="Commando Rifle"),
+            Weapon("C-14 Rifle", 12, Tag.Ground | Tag.Flying, 6, 3, Tag.Light, SurgeDie.D3P1, 1, tags=Tag.BurstFire, exchange_for="Commando Rifle"),
         ),
-        squad=(Squad(Range(1, 1), 1, 250),),
+        squad=(Squad(Range(1, 1), 1, 280),),
         tags=Tag.Unique | Tag.Biological | Tag.Ground,
         upgrades=(
-            Upgrade("C-14 rifle", Upgrade.activate_weapon),
+            Upgrade("C-14 Rifle", Upgrade.activate_weapon),
             Upgrade(
                 '! Activate BURST FIRE (3) on C-14 Rifle - target within 8"',
-                lambda unit: unit.weapon("C-14 rifle").buff_roa(3),
+                lambda unit: unit.weapon("C-14 Rifle").buff_roa(3),
                 flags=Upgrade.Flags.Workaround,
             ),
             Upgrade("Commander", flags=Upgrade.Flags.TypeOther),
@@ -232,7 +232,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
         armour=5,
         hit_points=2,
         weapons=(Weapon("Strike", "E", Tag.Ground, 1, 5, None, None, 1),),
-        squad=(Squad(Range(2, 3), 1, 110),),
+        squad=(Squad(Range(2, 3), 1, 120),),
         tags=Tag.Biological | Tag.Light | Tag.Ground,
         upgrades=(
             Upgrade("Life Support", flags=Upgrade.Flags.TypeOther),
@@ -366,10 +366,10 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
             Upgrade(
                 "Mode Transformation",
                 message=(
-                    "The active Unit gains or loses the SIEGE MODE Status. "
+                    "The active Unit gains or loses the SIEGE MODE Status.\n"
                     "While this Unit has the SIEGE MODE Status, its Size characteristic is treated as if it was 3."
                 ),
-                cost=Cost(points=1),
+                cost=Cost(20, points=1),
                 flags=Upgrade.Flags.TypeDefensive,
                 apply=lambda unit: unit.set_size(3),
             ),

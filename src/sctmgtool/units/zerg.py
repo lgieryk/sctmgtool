@@ -125,7 +125,7 @@ _ZERG_UNITS: tuple[Unit, ...] = (
                 flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
             ),
         ),
-        squad=(Squad(Range(2, 3), 1, 240),),
+        squad=(Squad(Range(2, 3), 1, 220),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground,
         upgrades=(
             Upgrade(
@@ -165,14 +165,14 @@ _ZERG_UNITS: tuple[Unit, ...] = (
         upgrades=(
             Upgrade(
                 "Ancillary Carapace",
-                cost=Cost(20, 40),
+                cost=Cost(20, 30),
                 message="This Unit gains TOUGH (1) on the first Armour Roll of each Activation.",
                 apply={Hook.ModifyTough: _AncillaryCarapaceHook()},
                 flags=Upgrade.Flags.TypeDefensive,
             ),
             Upgrade(
                 "Lurking",
-                cost=Cost(10, 20),
+                cost=Cost(10),
                 message=(
                     "If this Unit has Stationary Status, it is eligible to make an Evade Roll against the first Ranged Attack targeting it this Round. "
                     "If this Unit is ON CREEP, it gains +1 Modifier to this Evade Roll."
@@ -181,7 +181,7 @@ _ZERG_UNITS: tuple[Unit, ...] = (
             ),
             Upgrade(
                 "! Lurking",
-                cost=Cost(10, 20),
+                cost=Cost(10),
                 message="If this Unit has Stationary Status, it is eligible to make an Evade Roll against the first Ranged Attack targeting it this Round.",
                 apply=lambda unit: unit.grant_reroll("R"),
                 flags=Upgrade.Flags.Workaround,
@@ -265,7 +265,7 @@ _ZERG_UNITS: tuple[Unit, ...] = (
                 flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
             ),
         ),
-        squad=(Squad(Range(4, 6), 1, 250),),
+        squad=(Squad(Range(4, 6), 1, 230),),
         tags=Tag.Biological | Tag.Light | Tag.Ground | Tag.Unique,
         upgrades=(
             Upgrade(
@@ -329,7 +329,7 @@ _ZERG_UNITS: tuple[Unit, ...] = (
                 flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
             ),
         ),
-        squad=(Squad(Range(1, 1), 1, 150),),
+        squad=(Squad(Range(1, 1), 1, 140),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground | Tag.Psionic,
         upgrades=(
             Upgrade(
@@ -382,8 +382,8 @@ _ZERG_UNITS: tuple[Unit, ...] = (
             ),
         ),
         squad=(
-            Squad(Range(7, 12), 1, 240),
-            Squad(Range(13, 18), 2, 300),
+            Squad(Range(7, 12), 1, 210),
+            Squad(Range(13, 18), 2, 260),
         ),
         tags=Tag.Biological | Tag.Light | Tag.Ground,
         upgrades=(
@@ -569,7 +569,7 @@ _ZERG_UNITS: tuple[Unit, ...] = (
                 flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
             ),
         ),
-        squad=(Squad(Range(7, 18), 1, 260),),
+        squad=(Squad(Range(7, 18), 1, 210),),
         tags=Tag.Biological | Tag.Light | Tag.Ground,
         upgrades=(
             Upgrade("Squadron", flags=Upgrade.Flags.TypeOther),
@@ -605,7 +605,7 @@ _ZERG_UNITS: tuple[Unit, ...] = (
                 flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
             ),
         ),
-        squad=(Squad(Range(2, 3), 1, 200),),
+        squad=(Squad(Range(2, 3), 1, 190),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground,
         upgrades=(
             Upgrade(
@@ -656,8 +656,8 @@ _ZERG_UNITS: tuple[Unit, ...] = (
             ),
         ),
         squad=(
-            Squad(Range(7, 12), 1, 180),
-            Squad(Range(13, 18), 2, 220),
+            Squad(Range(7, 12), 1, 150),
+            Squad(Range(13, 18), 2, 210),
         ),
         tags=Tag.Biological | Tag.Light | Tag.Ground,
         upgrades=(
