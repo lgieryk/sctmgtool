@@ -95,6 +95,15 @@ ZERG_UNITS: tuple[Unit, ...] = (
                 flags=Upgrade.Flags.TypeDefensive,
             ),
             Upgrade(
+                "Lurking",
+                cost=Cost(10, 20),
+                message=(
+                    "If this Unit has Stationary Status, it is eligible to make an Evade Roll against the first Ranged Attack targeting it this Round. "
+                    "If this Unit is ON CREEP, it gains +1 Modifier to this Evade Roll."
+                ),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
+            Upgrade(
                 "! Lurking",
                 cost=Cost(10, 20),
                 message="If this Unit has Stationary Status, it is eligible to make an Evade Roll against the first Ranged Attack targeting it this Round.",
@@ -289,6 +298,12 @@ ZERG_UNITS: tuple[Unit, ...] = (
         upgrades=(
             Upgrade("Squadron", flags=Upgrade.Flags.TypeOther),
             Upgrade("Bloated Bile Ducts", flags=Upgrade.Flags.TypeOther),
+            Upgrade(
+                "Corrosive Bile",
+                message="For each model in this Unit, set one Corrosive Bile token on the battlefield Within 14\" of that model. These tokens are not removed if this Unit is Destroyed. At the End of the Assault Phase, each Unit suffers HITS 5 (1) effect for each of this Unit's Corrosive Bile tokens it is Within 1\" of. Then, remove all of this Unit's Corrosive Bile tokens from the battlefield. If multiple effects trigger at the End of the Assault Phase, resolve them in the order specified in Part 8.9.4.",
+                cost=Cost(points=1),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
             Upgrade(
                 "! Corrosive Bile",
                 message="For each model in this Unit, set one Corrosive Bile token on the battlefield Within 14\" of that model. These tokens are not removed if this Unit is Destroyed. At the End of the Assault Phase, each Unit suffers HITS 5 (1) effect for each of this Unit's Corrosive Bile tokens it is Within 1\" of. Then, remove all of this Unit's Corrosive Bile tokens from the battlefield. If multiple effects trigger at the End of the Assault Phase, resolve them in the order specified in Part 8.9.4.",

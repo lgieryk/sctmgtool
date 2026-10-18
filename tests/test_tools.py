@@ -175,6 +175,7 @@ def test_process_units():
         *marine.upgrades,
         Upgrade("Useless", apply=lambda x: True),
         Upgrade("Workaround", apply=lambda x: True, flags=Upgrade.Flags.Workaround),
+        Upgrade("Replaced", flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround),
     )
     units = (clone("Zergling"), marine)
 
@@ -183,14 +184,22 @@ def test_process_units():
 
     assert upgrade(marine, "Combat Shield").flags is Upgrade.Flags.TypeUnset
 
-    process_unit_list(units)
+    processed_units = process_unit_list(units)
+    processed_marine = next(unit for unit in processed_units if unit.name == "Marine")
 
-    assert upgrade(marine, "Combat Shield").flags == Upgrade.Flags.TypeDefensive
-    assert upgrade(marine, "Bayonet").flags == Upgrade.Flags.TypeOffensive
-    assert upgrade(marine, "Useless").flags == Upgrade.Flags.TypeOther
-    assert upgrade(marine, "Workaround").flags == Upgrade.Flags.TypeOther | Upgrade.Flags.Workaround
-    assert marine.has_upgrade("! Generic Evade-All")
-    assert upgrade(marine, "! Generic Evade-All").flags == Upgrade.Flags.TypeDefensive | Upgrade.Flags.Workaround
+    assert processed_units is not units
+    assert processed_marine is not marine
+    assert upgrade(marine, "Combat Shield").flags is Upgrade.Flags.TypeUnset
+    assert Upgrade.Flags.ReplacedByWorkaround in upgrade(marine, "Replaced").flags
+    assert not marine.has_upgrade("! Generic Evade-All")
+
+    assert upgrade(processed_marine, "Combat Shield").flags == Upgrade.Flags.TypeDefensive
+    assert upgrade(processed_marine, "Bayonet").flags == Upgrade.Flags.TypeOffensive
+    assert upgrade(processed_marine, "Useless").flags == Upgrade.Flags.TypeOther
+    assert upgrade(processed_marine, "Workaround").flags == Upgrade.Flags.TypeOther | Upgrade.Flags.Workaround
+    assert not processed_marine.has_upgrade("Replaced")
+    assert processed_marine.has_upgrade("! Generic Evade-All")
+    assert upgrade(processed_marine, "! Generic Evade-All").flags == Upgrade.Flags.TypeDefensive | Upgrade.Flags.Workaround
 
 
 def test_unit_buff():

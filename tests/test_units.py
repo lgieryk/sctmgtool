@@ -5,9 +5,9 @@ from copy import deepcopy
 from unittest.mock import patch
 
 from sctmgtool import hooks
-from sctmgtool.base import Hook, Tag, Weapon
+from sctmgtool.base import Hook, Tag, Upgrade, Weapon
 from sctmgtool.histogram import simulate_clash
-from sctmgtool.tools import ClashType, HookContext, MusteredUnit, WeaponBatch
+from sctmgtool.tools import ClashType, HookContext, MusteredUnit, WeaponBatch, process_unit_list
 from sctmgtool.units import ALL_UNITS
 
 
@@ -76,9 +76,13 @@ def test_psionic_presence_does_not_affect_shadow_strike():
 
 def test_siege_tank_shock_cannon_automatically_applies_aftershock_rounds():
     prototype = next(unit for unit in ALL_UNITS if unit.name == "Siege Tank")
-    upgrade_names = {upgrade.name for upgrade in prototype.upgrades}
-    assert "! Shock Cannon / Aftershock Rounds" in upgrade_names
-    assert "Aftershock Rounds" not in upgrade_names
+    upgrades = {upgrade.name: upgrade for upgrade in prototype.upgrades}
+    assert "! Shock Cannon / Aftershock Rounds" in upgrades
+    assert Upgrade.Flags.ReplacedByWorkaround in upgrades["Aftershock Rounds"].flags
+
+    processed_tank = process_unit_list((prototype,))[0]
+    assert not processed_tank.has_upgrade("Aftershock Rounds")
+    assert processed_tank.has_upgrade("! Shock Cannon / Aftershock Rounds")
 
     tank_without_upgrade = muster("Siege Tank")
     assert tank_without_upgrade.batch("Twin Cannon") is not None
