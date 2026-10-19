@@ -25,10 +25,63 @@ def _potent_bile(_, roll, armour):
         armour.value = min(6, armour.value + 1)
 
 
+def _biological_structure(owner, roll, pools):
+    if owner is roll.defender and Tag.Impact in roll.weapon_batch.weapon.tags:
+        pools.attack_pool.transfer_dice_to(pools.discard_pool)
+
+
+def _apply_dark_swarm(unit):
+    unit.grant_reroll("REA")
+    if unit.size == 1:
+        unit.buff_evade(1)
+
+
+def _transfusion(owner, total_damage):
+    if owner is total_damage.defender:
+        total_damage.value = max(0, total_damage.value - 2)
+
+
 def _buff_impact_hit(unit):
     for weapon in unit.weapons:
         if Tag.Impact in weapon.tags:
             weapon.buff_hit(1)
+
+
+def _add_critical_hit_to_non_impact_weapons(unit):
+    for weapon in unit.weapons:
+        if Tag.Impact not in weapon.tags:
+            weapon.add_tag(Tag.CriticalHit1)
+
+
+def _broodmother_upgrade(unit):
+    if unit.size == 1 and any(Tag.Impact in weapon.tags for weapon in unit.weapons):
+        return Upgrade(
+            "! Broodmother / Zagara",
+            message="Apply Broodmother of a friendly Zagara: this Size 1 Unit gains a +1 Modifier to all IMPACT Rolls.",
+            cost=Cost(points=1),
+            apply=_buff_impact_hit,
+            flags=Upgrade.Flags.TypeOffensive | Upgrade.Flags.Workaround,
+        )
+
+    if unit.size == 2:
+        return Upgrade(
+            "! Broodmother / Zagara",
+            message="Apply Broodmother of a friendly Zagara: all weapons of this Size 2 Unit gain CRITICAL HIT (1).",
+            cost=Cost(points=1),
+            apply=_add_critical_hit_to_non_impact_weapons,
+            flags=Upgrade.Flags.TypeOffensive | Upgrade.Flags.Workaround,
+        )
+
+    if unit.size is not None and unit.size >= 3:
+        return Upgrade(
+            "! Broodmother / Zagara",
+            message="Apply Broodmother of a friendly Zagara: this Size 3 or larger Unit gains TOUGH (1).",
+            cost=Cost(points=1),
+            apply=lambda mustered_unit: mustered_unit.add_tag(Tag.Tough1),
+            flags=Upgrade.Flags.TypeDefensive | Upgrade.Flags.Workaround,
+        )
+
+    return None
 
 
 class _AncillaryCarapaceHook(StatefulHook):
@@ -44,7 +97,7 @@ class _AncillaryCarapaceHook(StatefulHook):
             self.used = True
 
 
-ZERG_UNITS: tuple[Unit, ...] = (
+_ZERG_UNITS: tuple[Unit, ...] = (
     Unit(
         faction=Faction.Zerg,
         name="Corpser (Roach)",
@@ -59,7 +112,18 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Acid Saliva", 8, Tag.Ground, 2, 3, None, None, 1),
             Weapon("Claws", "E", Tag.Ground, 3, 4, Tag.Light, SurgeDie.D3P1, 1),
-            Weapon("! Devastating Charge", "A", Tag.Ground, 3, 4, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                3,
+                4,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
         ),
         squad=(Squad(Range(2, 3), 1, 240),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground,
@@ -148,7 +212,18 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Energy Blast", 8, Tag.Ground | Tag.Flying, 5, 3, Tag.Light | Tag.Armoured, SurgeDie.D3, 1),
             Weapon("Blades", "E", Tag.Ground, 6, 4, None, None, 2, tags=Tag.CriticalHit2),
-            Weapon("! Devastating Charge", "A", Tag.Ground, 4, 4, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                4,
+                4,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
         ),
         squad=(Squad(Range(1, 1), 1, 250),),
         tags=Tag.Biological | Tag.Psionic | Tag.Ground | Tag.Unique,
@@ -177,7 +252,18 @@ ZERG_UNITS: tuple[Unit, ...] = (
         hit_points=2,
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 3, Tag.Light | Tag.Armoured, SurgeDie.D6, 1, tags=Tag.Instant),
-            Weapon("! Devastating Charge", "A", Tag.Ground, 2, 5, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                2,
+                5,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
         ),
         squad=(Squad(Range(4, 6), 1, 250),),
         tags=Tag.Biological | Tag.Light | Tag.Ground | Tag.Unique,
@@ -230,14 +316,38 @@ ZERG_UNITS: tuple[Unit, ...] = (
             Weapon("Talons (Assault)", "6", Tag.Ground, 4, 4, Tag.Light, SurgeDie.D3, 2),
             # Note: Spines are not actually a "for" replacement
             Weapon("Acid spines", 12, Tag.Flying, 4, 4, Tag.Light | Tag.Armoured, SurgeDie.D3, 2, exchange_for="Talons (Assault)"),
-            Weapon("! Devastating Charge", "A", Tag.Ground, 4, 3, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                4,
+                3,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
         ),
         squad=(Squad(Range(1, 1), 1, 150),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground | Tag.Psionic,
         upgrades=(
-            Upgrade("Acid spines", apply=Upgrade.activate_weapon),
+            Upgrade(
+                "! Acid spines",
+                apply=lambda unit: unit.activate_weapon("Acid spines"),
+                message="Use Acid spines instead of Talons (Assault).",
+                flags=Upgrade.Flags.Workaround,
+            ),
             Upgrade("Spawn Creep Tumor", flags=Upgrade.Flags.TypeOther),
-            Upgrade("Transfusion", flags=Upgrade.Flags.TypeOther),
+            Upgrade(
+                "Transfusion",
+                message=(
+                    'Use when another Friendly Biological Unit (including a Structure) suffers Damage Within 4". Reduce the Total Damage before '
+                    "allocation by 2."
+                ),
+                cost=Cost(points=1),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
             Upgrade("Restoration", flags=Upgrade.Flags.TypeOther),
             Upgrade("Psionic Link", flags=Upgrade.Flags.TypeOther),
             Upgrade("Creep Speed", flags=Upgrade.Flags.TypeOther),
@@ -258,7 +368,18 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 4, Tag.Light, SurgeDie.D3, 1),
             Weapon("Shredding Claws", "E", Tag.Ground, 2, 4, Tag.Light | Tag.Armoured, SurgeDie.D3, 1, exchange_for="Claws"),
-            Weapon("! Devastating Charge", "A", Tag.Ground, 1, 5, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                1,
+                5,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
         ),
         squad=(
             Squad(Range(7, 12), 1, 240),
@@ -311,7 +432,18 @@ ZERG_UNITS: tuple[Unit, ...] = (
                 flags=Weapon.Flags.SimulationProfile,
             ),
             Weapon("Claws", "E", Tag.Ground, 2, 4, None, None, 1),
-            Weapon("! Devastating Charge", "A", Tag.Ground, 2, 4, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                2,
+                4,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
         ),
         squad=(
             Squad(Range(1, 1), 1, 160),
@@ -366,7 +498,18 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 4, None, None, 1),
             Weapon("Acid Saliva", 8, Tag.Ground, 3, 3, None, None, 1),
-            Weapon("! Devastating Charge", "A", Tag.Ground, 2, 4, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                2,
+                4,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
         ),
         squad=(Squad(Range(2, 3), 1, 170),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground,
@@ -413,7 +556,18 @@ ZERG_UNITS: tuple[Unit, ...] = (
         hit_points=1,
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 5, None, None, 1),
-            Weapon("! Devastating Charge", "A", Tag.Ground, 1, 5, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                1,
+                5,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
         ),
         squad=(Squad(Range(7, 18), 1, 260),),
         tags=Tag.Biological | Tag.Light | Tag.Ground,
@@ -438,7 +592,18 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Vile Claws", "E", Tag.Ground, 2, 4, None, None, 1),
             Weapon("Acid Saliva", 8, Tag.Ground, 4, 3, None, None, 1),
-            Weapon("! Devastating Charge", "A", Tag.Ground, 1, 4, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                1,
+                4,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
         ),
         squad=(Squad(Range(2, 3), 1, 200),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground,
@@ -477,7 +642,18 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 4, Tag.Light, SurgeDie.D3, 1),
             Weapon("Shredding Claws", "E", Tag.Ground, 2, 4, Tag.Light | Tag.Armoured, SurgeDie.D3, 1, exchange_for="Claws"),
-            Weapon("! Devastating Charge", "A", Tag.Ground, 1, 5, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                1,
+                5,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
         ),
         squad=(
             Squad(Range(7, 12), 1, 180),
@@ -497,4 +673,426 @@ ZERG_UNITS: tuple[Unit, ...] = (
             Upgrade("Metabolic Boost", flags=Upgrade.Flags.TypeOther),
         ),
     ),
+    Unit(
+        faction=Faction.Zerg,
+        name="Bile Launcher",
+        unit_type=UnitType.Support,
+        size=3,
+        keywords=(),
+        shield=None,
+        speed=Speed(0, 0),
+        evade=None,
+        armour=4,
+        hit_points=10,
+        weapons=(
+            Weapon(
+                "Bile Bomb",
+                12,
+                Tag.Ground,
+                6,
+                3,
+                Tag.Light | Tag.Armoured,
+                SurgeDie.D3,
+                1,
+                tags=Tag.Pinpoint | Tag.PierceArmoured2,
+            ),
+        ),
+        squad=(Squad(Range(1, 1), 1, 150),),
+        tags=Tag.Biological | Tag.Ground | Tag.Armoured | Tag.Unique,
+        upgrades=(
+            Upgrade(
+                "Biological Structure",
+                message="This Unit cannot gain the BURROWED Status, cannot be returned to Reserves, and is immune to the IMPACT keyword.",
+                cost=Cost(),
+                apply={Hook.RollPoolsInitiated: _biological_structure},
+                flags=Upgrade.Flags.TypeDefensive,
+            ),
+            Upgrade(
+                "Source of Creep",
+                message='A Friendly or Enemy Ground Zerg Unit Within 6" of this Unit, counts as being ON CREEP.',
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Detection",
+                message='While Enemy Units are Within 6" of this Unit, they lose the HIDDEN Status.',
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Burrow Ambush",
+                message=(
+                    "When this Unit is nominated to deploy from the Reserves, it may resolve the PLACE (18) effect from the controlling player's Entry "
+                    "Edge. No model may be set Within 10\" of any Enemy model. This Unit's Activation ends."
+                ),
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Bombard",
+                message=(
+                    'Set a Bile Bomb token on the battlefield Within 24" of this Unit. When this Unit resolves a Ranged Attack using the Bile Bomb '
+                    "weapon profile this Round, it may choose to ignore the weapon's standard Range characteristic. If it does, it may target an Enemy "
+                    'Unit that is Within 3" of that token (Line of Sight is not required), ignoring the HIDDEN Status. After the attack is fully resolved, '
+                    "remove the Bile Bomb token from the battlefield. When the Bile Bomb token is about to be removed, set a Creep Tumor token in "
+                    "base-to-base contact with it. The Bile Bomb token has DISPLACEMENT."
+                ),
+                cost=Cost(points=1),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Indomitable",
+                message=(
+                    "While Engaged, this Unit may target and be targeted by Unengaged Enemy Units. In both cases, the defending Unit gains an Evade "
+                    "Roll against those attacks."
+                ),
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+        ),
+    ),
+    Unit(
+        faction=Faction.Zerg,
+        name="Defiler",
+        unit_type=UnitType.Support,
+        size=2,
+        keywords=(),
+        shield=None,
+        speed=Speed(7, 7),
+        evade=5,
+        armour=5,
+        hit_points=8,
+        weapons=(
+            Weapon("Claws", "E", Tag.Ground, 4, 3, None, None, 1),
+            Weapon("Cancerous Bite", "E", Tag.Ground, 2, 3, None, None, 2, tags=Tag.Sidearm | Tag.CriticalHit1),
+            Weapon(
+                "! Plague",
+                "A",
+                Tag.Ground | Tag.Flying,
+                "BT:Plague+2",
+                5,
+                None,
+                None,
+                1,
+                tags=Tag.Sidearm | Tag.DirectDamage,
+                flags=Weapon.Flags.SimulationProfile,
+            ),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                4,
+                4,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
+        ),
+        squad=(Squad(Range(1, 1), 1, 130),),
+        tags=Tag.Biological | Tag.Ground | Tag.Light | Tag.Psionic,
+        upgrades=(
+            Upgrade(
+                "Consume",
+                message=(
+                    'When this Unit resolves a Special Ability that costs BM, it can remove one model from a Friendly Unit Within 4" to generate 1 BM '
+                    "to spend towards that ability’s cost."
+                ),
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Gestate Dark Swarm",
+                message='Set a Dark Swarm token in an unoccupied space Within 4" and Line of Sight of this Unit. The Dark Swarm token has DISPLACEMENT.',
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Burrow Ambush",
+                message=(
+                    "When this Unit is nominated to deploy from Reserves, it may resolve the PLACE (18) effect from the controlling player's Entry Edge. "
+                    "No model may be placed Within 10\" of any Enemy model. This Unit's Activation ends."
+                ),
+                cost=Cost(20),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Dark Swarm",
+                message=(
+                    'REPEATABLE. Use when a Friendly Unit Within 4" of a Friendly Dark Swarm token is selected as the target of an attack. If this Unit '
+                    "is Within 4'' of the same token, the Targeted Friendly Unit is eligible to make an Evade Roll against that attack. If the targeted "
+                    "Unit is a Size 1, it gains a +1 Modifier to this Evade Roll."
+                ),
+                cost=Cost(points=1),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
+            Upgrade(
+                "Plague",
+                message=(
+                    'You may spend 1 to 3 BM to activate this ability. Set a Plague Blast Template Wholly Within 10" and Line of Sight of this Unit. For '
+                    "each Unit that has at least one model whose base is partially covered by the template, roll 2 dice, plus 1 additional die for each "
+                    "model in that Unit whose base is partially covered. That Unit loses its HIDDEN Status, and, depending on the BM spent, it suffers "
+                    "NON-LETHAL DAMAGE (1) for:\n1 BM: each result of 5+.\n2 BM: each result of 4+.\n3 BM: each result of 3+."
+                ),
+                cost=Cost(20),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
+            Upgrade(
+                "! Plague",
+                Upgrade.activate_weapon,
+                message=(
+                    'Spend 1 BM and resolve a Plague Blast Template Wholly Within 10" and Line of Sight of this Unit. In this simulation, '
+                    "NON-LETHAL DAMAGE (1) is represented as regular Damage, so the kills chart is not rules-accurate."
+                ),
+                cost=Cost(20),
+                flags=Upgrade.Flags.Workaround,
+            ),
+            Upgrade(
+                "! Plague / Second BM",
+                apply=lambda unit: unit.weapon("! Plague").buff_hit(1),
+                message="Select together with ! Plague. Spend a second BM to improve the Plague roll from 5+ to 4+.",
+                flags=Upgrade.Flags.Workaround,
+            ),
+            Upgrade(
+                "! Plague / Third BM",
+                apply=lambda unit: unit.weapon("! Plague").buff_hit(1),
+                message="Select together with ! Plague and ! Plague / Second BM. Spend a third BM to improve the Plague roll from 4+ to 3+.",
+                flags=Upgrade.Flags.Workaround,
+            ),
+            Upgrade(
+                "Devastating Charge",
+                message="Immediately after this Unit completes a successful Charge, resolve the IMPACT (4) 4+ effect.",
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
+        ),
+    ),
+    Unit(
+        faction=Faction.Zerg,
+        name="Vileling (Zergling)",
+        unit_type=UnitType.Core,
+        size=1,
+        keywords=("Zerg", "Zagara's Swarm"),
+        shield=None,
+        speed=Speed(4, 8),
+        evade=5,
+        armour=6,
+        hit_points=1,
+        weapons=(
+            Weapon("Claws", "E", Tag.Ground, 2, 5, None, None, 1),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                1,
+                5,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
+        ),
+        squad=(Squad(Range(7, 18), 2, 180),),
+        tags=Tag.Biological | Tag.Ground | Tag.Light,
+        upgrades=(
+            Upgrade(
+                "Squadron",
+                message='This Unit’s Horizontal Coherency is 4".',
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Burrow Ambush",
+                message=(
+                    "When this Unit is nominated to deploy from the Reserves, it may resolve the PLACE (18) effect from the controlling player's Entry "
+                    "Edge. No model may be set Within 10\" of any Enemy model. This Unit's Activation ends."
+                ),
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Zergling Reconstitution",
+                message="Resolve the RESPAWN (2) effect, or RESPAWN (3) if the Unit is ON CREEP.",
+                cost=Cost(points=1),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Metabolic Boost",
+                message=(
+                    "When determining Charge Distance for this Unit, roll 2D6 instead of D6 and use the higher result to add to the Unit’s Speed "
+                    "characteristic."
+                ),
+                cost=Cost(points=1),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Devastating Charge",
+                message="Immediately after this Unit completes a successful Charge, resolve the IMPACT (1) 5+ effect.",
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
+            Upgrade(
+                "Debilitating Claws",
+                message="After an Enemy Unit suffers Damage from this Unit, apply DEBUFF Hit (1) to each of that Unit's Weapons.",
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+        ),
+    ),
+    Unit(
+        faction=Faction.Zerg,
+        name="Zagara",
+        unit_type=UnitType.Hero,
+        size=3,
+        keywords=(),
+        shield=None,
+        speed=Speed(7, 7),
+        evade=6,
+        armour=4,
+        hit_points=10,
+        weapons=(
+            Weapon("Zagara's Talons", 8, Tag.Ground, 4, 3, Tag.Light | Tag.Armoured, SurgeDie.D3, 2),
+            Weapon(
+                "Zagara's Acid Spines",
+                14,
+                Tag.Flying,
+                8,
+                3,
+                Tag.Light | Tag.Armoured,
+                SurgeDie.D3,
+                1,
+                exchange_for="Zagara's Talons",
+            ),
+            Weapon("Talons", "E", Tag.Ground, 4, 3, None, None, 1),
+            Weapon(
+                "! Devastating Charge",
+                "A",
+                Tag.Ground,
+                6,
+                3,
+                None,
+                None,
+                1,
+                tags=Tag.Impact,
+                flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+            ),
+        ),
+        squad=(Squad(Range(1, 1), 1, 250),),
+        tags=Tag.Biological | Tag.Ground | Tag.Psionic | Tag.Unique,
+        upgrades=(
+            Upgrade(
+                "Commander",
+                message=(
+                    "Treat this Unit’s Supply characteristic as increased by 1 for Controlling and Contesting Mission Markers, completing objectives, "
+                    "and resolving Disengage checks."
+                ),
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "! Zagara's Acid Spines",
+                apply=lambda unit: unit.activate_weapon("Zagara's Acid Spines"),
+                message="Use Zagara's Acid Spines instead of Zagara's Talons.",
+                flags=Upgrade.Flags.Workaround,
+            ),
+            Upgrade(
+                "Transfusion",
+                message=(
+                    'Use when another Friendly Biological Unit (including a Structure) suffers Damage Within 4". Reduce the Total Damage before '
+                    "allocation by 2."
+                ),
+                cost=Cost(points=1),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
+            Upgrade(
+                "Psionic Link",
+                message=(
+                    'Once per Round, if there are at least 7 Friendly models Within 6" of this Unit, it may resolve its Special Ability with the BM cost '
+                    "reduced by 1."
+                ),
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Broodmother",
+                message=(
+                    "Apply one of the following effects to all Friendly units (Line of Sight is not required). You cannot apply the effect chosen in the "
+                    "previous Game Round:\n\nUnits of Size 1 gain a +1 Modifier to all IMPACT Rolls.\n\nAll weapons of Size 2 Units gain CRITICAL HIT "
+                    "(1).\n\nUnits of Size 3 or more gain TOUGH (1)."
+                ),
+                cost=Cost(points=1),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
+            Upgrade(
+                "Infested Drop",
+                message=(
+                    "The base of the Zagara counts as an Entry Edge. Each Round, Friendly Units with a combined Supply cost of 1 may be Deployed via "
+                    "this Entry Edge."
+                ),
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Indomitable",
+                message=(
+                    "While Engaged, this Unit may target and be targeted by Unengaged Enemy Units. In both cases, the defending Unit gains an Evade "
+                    "Roll against those attacks."
+                ),
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther,
+            ),
+            Upgrade(
+                "Devastating Charge",
+                message="Immediately after this Unit completes a successful Charge, resolve the IMPACT (6) 3+ effect.",
+                cost=Cost(),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
+        ),
+    ),
 )
+
+
+def _apply_common_skills(units):
+    dark_swarm = Upgrade(
+        "! Dark Swarm / Defiler",
+        message=(
+            'REPEATABLE. Use when this Friendly Unit is selected as the target of an attack while it is Within 4" of a Friendly Dark Swarm token. If '
+            'a Friendly Defiler is Within 4" of the same token, this Unit is eligible to make an Evade Roll against that attack. If this Unit is '
+            "Size 1, it also gains a +1 Modifier to this Evade Roll."
+        ),
+        cost=Cost(points=1),
+        apply=_apply_dark_swarm,
+        flags=Upgrade.Flags.TypeDefensive | Upgrade.Flags.Workaround,
+    )
+    transfusion = Upgrade(
+        "! Transfusion / Queen/Zagara",
+        message=(
+            'Use when this Friendly Biological Unit, including a Structure, suffers Damage while Within 4" of a Friendly Queen or Zagara. Reduce '
+            "the Total Damage before allocation by 2."
+        ),
+        cost=Cost(points=1),
+        apply={Hook.ModifyTotalDamage: _transfusion},
+        flags=Upgrade.Flags.TypeDefensive | Upgrade.Flags.Workaround,
+    )
+
+    for unit in units:
+        to_add = []
+
+        if unit.evade is not None:
+            to_add.append(dark_swarm)
+
+        if Tag.Biological in unit.tags:
+            to_add.append(transfusion)
+
+        broodmother = _broodmother_upgrade(unit)
+        if broodmother is not None:
+            to_add.append(broodmother)
+
+        unit.upgrades = (*unit.upgrades, *to_add)
+
+    return units
+
+
+ZERG_UNITS = _apply_common_skills(_ZERG_UNITS)
