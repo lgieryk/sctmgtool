@@ -31,3 +31,11 @@ class ToughHookArgs:
 @dataclass
 class DamageHookArgs:
     value: int
+
+
+@dataclass
+class TotalDamageHookArgs:
+    attacker: Any
+    defender: Any
+    clash_type: Any
+    value: int

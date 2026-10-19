@@ -4,9 +4,9 @@
 from copy import deepcopy
 from unittest.mock import patch
 
-from sctmgtool.base import Tag, Weapon
+from sctmgtool.base import Hook, Tag, Upgrade, Weapon
 from sctmgtool.histogram import simulate_clash
-from sctmgtool.tools import ClashType, MusteredUnit
+from sctmgtool.tools import ClashType, MusteredUnit, WeaponBatch
 from sctmgtool.units import ALL_UNITS
 
 
@@ -63,3 +63,32 @@ def test_concentrated_fire_preserves_damage_marker_before_reaching_casualty_limi
 
     assert histogram.damage[10] == 100
     assert histogram.kills[1] == 100
+
+
+def test_total_damage_hook_is_applied_once_after_all_weapon_batches():
+    attacker = MusteredUnit.make(clone("Marine"), {})
+    attacker.weapon_batches = [
+        WeaponBatch(1, Weapon("First", 12, Tag.Ground, 1, 3, None, None, 1)),
+        WeaponBatch(1, Weapon("Second", 12, Tag.Ground, 1, 3, None, None, 1)),
+    ]
+
+    defender_prototype = clone("Marine")
+    defender_prototype.upgrades = (
+        Upgrade(
+            "Reduce total damage",
+            apply={
+                Hook.ModifyTotalDamage: lambda _, damage: setattr(damage, "value", max(0, damage.value - 2)),
+            },
+            flags=Upgrade.Flags.TypeDefensive,
+        ),
+    )
+    defender = MusteredUnit.make(defender_prototype, {"Reduce total damage": True}, is_attacker=False)
+    defender.models = 4
+    defender.hit_points = 5
+    defender.shield = 0
+
+    with patch("sctmgtool.histogram.roll_damage", return_value=3):
+        histogram = simulate_clash(attacker, defender, roll_count=1)[ClashType.Ranged]
+
+    assert histogram.damage[4] == 100
+    assert histogram.kills[0] == 100
