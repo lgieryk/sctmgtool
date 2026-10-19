@@ -253,6 +253,7 @@ class Hook(Enum):
     ModifyArmour = auto()
     ModifyTough = auto()
     ModifyDamage = auto()
+    ModifyTotalDamage = auto()
 
 
 class StatefulHook:

@@ -8,6 +8,8 @@ from matplotlib import ticker
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+from sctmgtool import hooks
+from sctmgtool.base import Hook
 from sctmgtool.tools import ClashType, HookContext, MusteredUnit, roll_damage, select_weapons
 
 BACKGROUND_COLOR = "#0f172a"
@@ -108,6 +110,11 @@ def simulate_clash(
                     max_kills = min(defender.models, kills_before + batch.weapon.tags.concentrated_fire())
                     max_damage = (defender.shield or 0) + max_kills * defender.hit_points
                     total_damage = min(total_damage, max_damage)
+
+            total_damage_args = hooks.TotalDamageHookArgs(attacker, defender, clash_type, total_damage)
+            context.call_hooks(Hook.ModifyTotalDamage, total_damage_args)
+            assert total_damage_args.value >= 0
+            total_damage = total_damage_args.value
 
             damage_samples.append(total_damage)
             kills_samples.append(defender.num_killed(total_damage))
