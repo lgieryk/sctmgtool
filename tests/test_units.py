@@ -69,6 +69,22 @@ def test_ravager_corrosive_bile_weapon_combinations():
         assert active == expected
 
 
+def test_zerg_ground_and_flying_weapon_combinations():
+    cases = (
+        ("Queen", "Talons (Assault)", "Acid spines", "! Acid spines"),
+        ("Zagara", "Zagara's Talons", "Zagara's Acid Spines", "! Zagara's Acid Spines"),
+    )
+
+    for unit_name, ground_weapon, flying_weapon, upgrade in cases:
+        unit = muster(unit_name)
+        assert unit.batch(ground_weapon) is not None
+        assert unit.batch(flying_weapon) is None
+
+        unit = muster(unit_name, {upgrade: True})
+        assert unit.batch(ground_weapon) is None
+        assert unit.batch(flying_weapon) is not None
+
+
 def test_zeratul_shadow_strike_weapon_combinations():
     cases = (
         ({}, ("Master Warp Blade",)),
@@ -121,3 +137,71 @@ def test_siege_tank_shock_cannon_automatically_applies_aftershock_rounds():
     damage = hooks.DamageHookArgs(shock_cannon.weapon.damage)
     HookContext(tank).call_hooks(Hook.ModifyDamage, hooks.RollHookArgs(tank, shock_cannon, defender), damage)
     assert damage.value == defender.size
+
+
+def test_biological_structure_negates_impact_attacks():
+    attacker = muster("Zergling")
+    attacker.weapon_batches = [WeaponBatch(1, Weapon("Impact", "A", Tag.Ground, 1, 2, None, None, 1, tags=Tag.Impact))]
+    defender = MusteredUnit.make(clone("Bile Launcher"), {"Biological Structure": True}, is_attacker=False)
+
+    with patch("sctmgtool.tools.random.choices", side_effect=lambda _, k: [2] * k):
+        histogram = simulate_clash(attacker, defender, roll_count=1)[ClashType.Charge]
+
+    assert histogram.damage[0] == 100
+
+
+def test_dark_swarm_and_broodmother_workarounds_apply_size_dependent_effects():
+    vileling = MusteredUnit.make(
+        clone("Vileling (Zergling)"),
+        {"! Dark Swarm / Defiler": True},
+        is_attacker=False,
+    )
+    assert vileling.evade_reroll == "REA"
+    assert vileling.evade == 4
+
+    vileling = muster("Vileling (Zergling)", {"! Broodmother / Zagara": True})
+    assert vileling.batch("! Devastating Charge").weapon.hit == 4
+    assert vileling.batch("Claws").weapon.hit == 5
+
+    defiler = clone("Defiler")
+    defiler.weapons = (*defiler.weapons, Weapon("Other Ability", "A", Tag.Ground, 1, 3, None, None, 1))
+    defiler = MusteredUnit.make(defiler, {"! Broodmother / Zagara": True})
+    assert all(Tag.CriticalHit1 in weapon.tags for weapon in defiler.weapons if Tag.Impact not in weapon.tags)
+    assert Tag.CriticalHit1 not in next(weapon for weapon in defiler.weapons if Tag.Impact in weapon.tags).tags
+
+    zagara = MusteredUnit.make(clone("Zagara"), {"! Broodmother / Zagara": True}, is_attacker=False)
+    assert Tag.Tough1 in zagara.tags
+
+
+def test_transfusion_reduces_total_damage_not_below_zero():
+    attacker = MusteredUnit.make(next(unit for unit in TERRAN_UNITS if unit.name == "Marine"), {})
+    bile_launcher = next(unit for unit in ZERG_UNITS if unit.name == "Bile Launcher")
+    defender = MusteredUnit.make(bile_launcher, {"! Transfusion / Queen/Zagara": True}, is_attacker=False)
+    context = HookContext(attacker, defender)
+
+    for initial, expected in ((5, 3), (1, 0)):
+        total_damage = hooks.TotalDamageHookArgs(attacker, defender, ClashType.Ranged, initial)
+        context.call_hooks(Hook.ModifyTotalDamage, total_damage)
+        assert total_damage.value == expected
+
+
+def test_plague_biomass_upgrades_stack_on_one_profile():
+    plague = "! Plague"
+    second_bm = "! Plague / Second BM"
+    third_bm = "! Plague / Third BM"
+    cases = (
+        ({plague: True}, 5),
+        ({plague: True, second_bm: True}, 4),
+        ({plague: True, second_bm: True, third_bm: True}, 3),
+    )
+
+    assert muster("Defiler").batch(plague) is None
+
+    for config, hit in cases:
+        defiler = muster("Defiler", config)
+        batches = [batch for batch in defiler.weapon_batches if batch.weapon.name == plague]
+
+        assert len(batches) == 1
+        assert batches[0].weapon.rate_of_attack == "BT:Plague+2"
+        assert batches[0].weapon.hit == hit
+        assert batches[0].weapon.tags == Tag.Sidearm | Tag.DirectDamage
