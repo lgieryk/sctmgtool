@@ -145,19 +145,19 @@ def test_evade():
         batch = WeaponBatch(4, Weapon("Ranged", 12, Tag.Ground, 4, 3, None, None, 1))
         marine.armour = 4
         marine.evade = 3
-        marine.evade_reroll = "REC"
+        marine.evade_reroll = "REA"
         assert roll_damage(None, batch, marine) == 0
 
         # Defender does not have reroll against Ranged
-        marine.evade_reroll = "EC"
+        marine.evade_reroll = "EA"
         assert roll_damage(None, batch, marine) == 16
 
         # Update weapon type to see if reroll works again
-        batch = WeaponBatch(4, Weapon("Charge", "C", Tag.Ground, 4, 3, None, None, 1))
+        batch = WeaponBatch(4, Weapon("Ability", "A", Tag.Ground, 4, 3, None, None, 1))
         assert roll_damage(None, batch, marine) == 0
 
         # Failure to evade due to 4+
-        batch = WeaponBatch(4, Weapon("Charge", "C", Tag.Ground, 4, 3, None, None, 1))
+        batch = WeaponBatch(4, Weapon("Ability", "A", Tag.Ground, 4, 3, None, None, 1))
         marine.evade = 4
         assert roll_damage(None, batch, marine) == 16
 
@@ -165,7 +165,7 @@ def test_evade():
         # Anti-evade changes 6+ to 7+ but 6 are still successes guaranteeing 100% evades
         batch = WeaponBatch(4, Weapon("Ranged", 12, Tag.Ground, 4, 3, None, None, 1, tags=Tag.AntiEvade1))
         marine.evade = 6
-        marine.evade_reroll = "REC"
+        marine.evade_reroll = "REA"
         assert roll_damage(None, batch, marine) == 0
 
         # As above, but with 4+3

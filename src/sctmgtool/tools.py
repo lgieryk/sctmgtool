@@ -178,7 +178,7 @@ class MusteredUnit(Unit):
 
     def grant_reroll(self, rt: str):
         for letter in rt:
-            assert letter in "REC"
+            assert letter in "REA"
             if letter not in self.evade_reroll:
                 self.evade_reroll += letter
 
@@ -210,7 +210,7 @@ class MusteredUnit(Unit):
 
         default_added = []
 
-        # Enable the 1st non-upgrade weapon of each type (clash, melee, ranged) and all sidearms
+        # Enable the 1st non-upgrade weapon of each type (ability, melee, ranged) and all sidearms
         for w in unit.weapons:
             if upgrade_exists(w.name):
                 continue
@@ -400,15 +400,15 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
 
 class ClashType(Enum):
     # pylint: disable=invalid-name
-    Charge = "Charge"
+    Ability = "Ability"
     Ranged = "Ranged"
     CloseCombat = "Close Combat"
 
 
 def select_weapons(attacker: MusteredUnit, defender: MusteredUnit, clash_type: ClashType) -> list[WeaponBatch]:
     def is_applicable(weapon: Weapon):
-        if clash_type == ClashType.Charge:
-            return Tag.Ground in defender.tags and weapon.type_letter == "C"
+        if clash_type == ClashType.Ability:
+            return weapon.type_letter == "A" and bool(weapon.target & defender.tags)
         elif clash_type == ClashType.CloseCombat:
             return Tag.Ground in defender.tags and weapon.type_letter == "E"
         else:
@@ -430,7 +430,7 @@ def process_unit_list(units):
                 *unit.upgrades,
                 Upgrade(
                     "! Generic Evade-All",
-                    lambda unit: unit.grant_reroll("REC"),
+                    lambda unit: unit.grant_reroll("REA"),
                     flags=Upgrade.Flags.Workaround,
                 ),
             )

@@ -40,9 +40,9 @@ def test_jim_raynor_orders_upgrade():
     assert all(Tag.CriticalHit2 not in weapon.tags for weapon in marine.weapons if weapon.name not in ("Strike", "Bayonet"))
 
     marauder = clone("Marauder")
-    marauder.weapons = (*marauder.weapons, Weapon("Charge", "C", Tag.Ground, 2, 4, None, None, 1))
+    marauder.weapons = (*marauder.weapons, Weapon("Ability", "A", Tag.Ground, 2, 4, None, None, 1))
     non_order_upgrades = tuple(upgrade for upgrade in marauder.upgrades if not upgrade.name.startswith("! Orders / Jim Raynor"))
     marauder.upgrades = (*non_order_upgrades, *apply_jim_raynors_orders(marauder))
     marauder = MusteredUnit.make(marauder, {"! Orders / Jim Raynor": True})
-    assert all(Tag.CriticalHit2 in weapon.tags for weapon in marauder.weapons if weapon.type_letter != "C")
-    assert all(Tag.CriticalHit2 not in weapon.tags for weapon in marauder.weapons if weapon.type_letter == "C")
+    assert all(Tag.CriticalHit2 in weapon.tags for weapon in marauder.weapons if weapon.type_letter != "A")
+    assert all(Tag.CriticalHit2 not in weapon.tags for weapon in marauder.weapons if weapon.type_letter == "A")

@@ -18,6 +18,12 @@ def _improved_barrier(_, __, damage):
     damage.value = min(damage.value, 1)
 
 
+def _buff_roa_for_impact_weapons(unit):
+    for weapon in unit.weapons:
+        if Tag.Impact in weapon.tags:
+            weapon.buff_roa(1)
+
+
 _PROTOSS_UNITS: tuple[Unit, ...] = (
     Unit(
         faction=Faction.Protoss,
@@ -75,7 +81,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
             Weapon("Twilight Blades Strike", "E", Tag.Ground, 2, 2, Tag.Armoured, SurgeDie.D3, 3),
             # Note: Sweep is actually always available, it's not a "for"
             Weapon("Twilight Blades Sweep", "E", Tag.Ground, 6, 2, Tag.Light, SurgeDie.D3P1, 1, exchange_for="Twilight Blades Strike"),
-            Weapon("Devastating Charge", "C", Tag.Ground, 6, 4, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 6, 4, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(1, 1), 1, 250),),
         tags=Tag.Biological | Tag.Psionic | Tag.Ground | Tag.Unique,
@@ -136,7 +142,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 exchange_for="Right Photon Disruptor",
             ),
             Weapon("Stomp", "E", Tag.Ground, 3, 3, None, None, 1),
-            Weapon("Devastating Charge", "C", Tag.Ground, 4, 3, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 4, 3, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(1, 1), 2, 280),),
         tags=Tag.Mechanical | Tag.Ground | Tag.Armoured,
@@ -208,7 +214,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
         hit_points=4,
         weapons=(
             Weapon("Psi Blades", "E", Tag.Ground, 4, 3, Tag.Light, SurgeDie.D3, 1),
-            Weapon("Devastating Charge", "C", Tag.Ground, 3, 4, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 3, 4, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(2, 3), 2, 280),),
         tags=Tag.Biological | Tag.Light | Tag.Ground | Tag.Unique,
@@ -229,7 +235,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 "Precognition",
                 cost=Cost(0),
                 message="This Unit is eligible to make an Evade roll against all attacks targeting it.",
-                apply=lambda unit: unit.grant_reroll("REC"),
+                apply=lambda unit: unit.grant_reroll("REA"),
             ),
             Upgrade("Leg Enhancements", flags=Upgrade.Flags.TypeOther),
             Upgrade("Charge", flags=Upgrade.Flags.TypeOther),
@@ -325,7 +331,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
         hit_points=4,
         weapons=(
             Weapon("Psi Blades", "E", Tag.Ground, 4, 3, Tag.Light, SurgeDie.D3, 1),
-            Weapon("Devastating Charge", "C", Tag.Ground, 3, 4, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 3, 4, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(2, 3), 2, 160),),
         tags=Tag.Biological | Tag.Light | Tag.Ground,
@@ -340,7 +346,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 "My Life for Aiur",
                 cost=Cost(10),
                 message="When this Unit resolves IMPACT, each eligible model generates 1 additional IMPACT die.",
-                apply=lambda unit: unit.weapon("@range==C").buff_roa(1),
+                apply=_buff_roa_for_impact_weapons,
             ),
             Upgrade("Leg Enhancements", flags=Upgrade.Flags.TypeOther),
             Upgrade("Charge", flags=Upgrade.Flags.TypeOther),
@@ -361,7 +367,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Master Warp Blade", "E", Tag.Ground, 4, 3, Tag.Light | Tag.Armoured, SurgeDie.D3, 2, tags=Tag.Instant),
             Weapon("! Shadow Strike", "E", Tag.Ground, 4, None, None, None, 1, tags=Tag.Sidearm | Tag.Hits),
-            Weapon("Devastating Charge", "C", Tag.Ground, 4, 4, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 4, 4, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(1, 1), 1, 230),),
         tags=Tag.Biological | Tag.Ground | Tag.Psionic | Tag.Unique,
@@ -371,7 +377,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
                 "Prophetic Vision",
                 message="REPEATABLE. Use when this Unit is selected as the target of an attack. This Unit's Evade characteristic is treated as 4+ against this attack and cannot be modified.",
                 cost=Cost(points=1),
-                apply=lambda unit: unit.grant_reroll("REC") or unit.buff_evade(1),
+                apply=lambda unit: unit.grant_reroll("REA") or unit.buff_evade(1),
                 flags=Upgrade.Flags.TypeDefensive,
             ),
             Upgrade(
@@ -415,7 +421,7 @@ def _guardian_shield_effect(_, roll, pools):
 
 def _psionic_presence_effect(unit):
     for weapon in unit.weapons:
-        if weapon.type_letter != "C" and weapon.hit is not None:
+        if weapon.type_letter != "A" and weapon.hit is not None:
             weapon.add_tag(Tag.Precision1)
 
 
