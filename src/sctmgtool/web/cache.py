@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 import sctmgtool
 
 APP_REVISION = sctmgtool.__version__
-CHARTS_REVISION = 3
+CHARTS_REVISION = 4
 CACHE_REVISION = f"{APP_REVISION}/{CHARTS_REVISION}"
 
 

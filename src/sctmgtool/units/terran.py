@@ -39,8 +39,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
                 "Combat Shield",
                 cost=Cost(20, 30, points=1),
                 message="This Unit is always eligible to make an Evade Roll against any Close Combat Attack targeting it and any Damage from an Enemy Special Ability.",
-                # Naively assumed it's only the Charge that generates damage from ability
-                apply=lambda unit: unit.grant_reroll("EC"),
+                apply=lambda unit: unit.grant_reroll("EA"),
             ),
             Upgrade("AGG-12", cost=Cost(10), apply=Upgrade.activate_weapon),
             Upgrade("Rocket Launcher", cost=Cost(40), apply=Upgrade.activate_weapon),
@@ -96,7 +95,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
                 "Haywire Missiles", 12, Tag.Ground, 3, 3, Tag.Armoured, SurgeDie.D3, 1, tags=Tag.Sidearm | Tag.PierceArmoured3, exchange_for="Hellfire Missiles"
             ),
             Weapon("Stomp", "E", Tag.Ground, 4, 5, None, None, 1),
-            Weapon("Devastating Charge", "C", Tag.Ground, 4, 3, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 4, 3, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(1, 1), 2, 190),),
         tags=Tag.Armoured | Tag.Mechanical | Tag.Ground,
@@ -303,7 +302,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
             Weapon("Twin Cannon", 12, Tag.Ground, 8, 3, Tag.Armoured, SurgeDie.D6, 1, tags=Tag.PierceArmoured2),
             Weapon("Shock Cannon", 18, Tag.Ground, "BT+4", 4, Tag.Light | Tag.Armoured, SurgeDie.BT, 1, exchange_for="Twin Cannon"),
             Weapon("Rolling Over", "E", Tag.Ground, 2, 2, None, None, 1),
-            Weapon("Devastating Charge", "C", Tag.Ground, 4, 3, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 4, 3, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(1, 1), 2, 220),),
         tags=Tag.Mechanical | Tag.Ground | Tag.Armoured,

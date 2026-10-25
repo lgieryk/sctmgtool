@@ -70,6 +70,7 @@ class Tag(Flag):
     _ConcentratedFire = 0b0000000000000000000100000000000000000000000000000000000000000000
     ConcentratedFire1 = 0b0000000000000000001100000000000000000000000000000000000000000000
     Hits              = 0b0000000000000000010000000000000000000000000000000000000000000000
+    Impact            = 0b0000000000000000100000000000000000000000000000000000000000000000
     # fmt: on
 
     def _str(self, r):
@@ -201,7 +202,7 @@ class Weapon:
 
     @property
     def type_letter(self):
-        return self.range if self.range in ("E", "C") else "R"
+        return self.range if self.range in ("E", "A") else "R"
 
     def __str__(self):
         ef = f" FOR:{self.exchange_for}" if self.exchange_for != "" else ""

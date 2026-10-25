@@ -19,6 +19,12 @@ def _potent_bile(_, roll, armour):
         armour.value = min(6, armour.value + 1)
 
 
+def _buff_impact_hit(unit):
+    for weapon in unit.weapons:
+        if Tag.Impact in weapon.tags:
+            weapon.buff_hit(1)
+
+
 class _AncillaryCarapaceHook(StatefulHook):
     def __init__(self):
         self.used = False
@@ -47,7 +53,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Acid Saliva", 8, Tag.Ground, 2, 3, None, None, 1),
             Weapon("Claws", "E", Tag.Ground, 3, 4, Tag.Light, SurgeDie.D3P1, 1),
-            Weapon("Devastating Charge", "C", Tag.Ground, 3, 4, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 3, 4, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(2, 3), 1, 240),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground,
@@ -136,7 +142,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Energy Blast", 8, Tag.Ground | Tag.Flying, 5, 3, Tag.Light | Tag.Armoured, SurgeDie.D3, 1),
             Weapon("Blades", "E", Tag.Ground, 6, 4, None, None, 2, tags=Tag.CriticalHit2),
-            Weapon("Devastating Charge", "C", Tag.Ground, 4, 4, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 4, 4, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(1, 1), 1, 250),),
         tags=Tag.Biological | Tag.Psionic | Tag.Ground | Tag.Unique,
@@ -145,7 +151,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
                 "Mutating Carapace",
                 cost=Cost(points=1),
                 message='Select one Enemy Unit Within 18". This Unit is eligible to make an Evade Roll against all attacks made by the selected Enemy Unit, with a +2 Modifier applied to those Evade Rolls.',
-                apply=lambda unit: unit.grant_reroll("REC") or unit.buff_evade(2),
+                apply=lambda unit: unit.grant_reroll("REA") or unit.buff_evade(2),
             ),
             Upgrade("Commander", flags=Upgrade.Flags.TypeOther),
             Upgrade("Crushing Grip", flags=Upgrade.Flags.TypeOther),
@@ -165,7 +171,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         hit_points=2,
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 3, Tag.Light | Tag.Armoured, SurgeDie.D6, 1, tags=Tag.Instant),
-            Weapon("Devastating Charge", "C", Tag.Ground, 2, 5, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 2, 5, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(4, 6), 1, 250),),
         tags=Tag.Biological | Tag.Light | Tag.Ground | Tag.Unique,
@@ -174,7 +180,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
                 "Adrenal Overload",
                 cost=Cost(points=1),
                 message="This Unit gains a +1 Modifier to all IMPACT Hit Rolls.",
-                apply=lambda unit: unit.weapon("Devastating Charge").buff_hit(1),
+                apply=_buff_impact_hit,
             ),
             Upgrade("Squadron", flags=Upgrade.Flags.TypeOther),
             Upgrade("Raptor Strain", flags=Upgrade.Flags.TypeOther),
@@ -218,7 +224,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
             Weapon("Talons (Assault)", "6", Tag.Ground, 4, 4, Tag.Light, SurgeDie.D3, 2),
             # Note: Spines are not actually a "for" replacement
             Weapon("Acid spines", 12, Tag.Flying, 4, 4, Tag.Light | Tag.Armoured, SurgeDie.D3, 2, exchange_for="Talons (Assault)"),
-            Weapon("Devastating Charge", "C", Tag.Ground, 4, 3, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 4, 3, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(1, 1), 1, 150),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground | Tag.Psionic,
@@ -246,7 +252,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 4, Tag.Light, SurgeDie.D3, 1),
             Weapon("Shredding Claws", "E", Tag.Ground, 2, 4, Tag.Light | Tag.Armoured, SurgeDie.D3, 1, exchange_for="Claws"),
-            Weapon("Devastating Charge", "C", Tag.Ground, 1, 5, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 1, 5, None, None, 1, tags=Tag.Impact),
         ),
         squad=(
             Squad(Range(7, 12), 1, 240),
@@ -258,7 +264,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
                 "Adrenal Overload",
                 cost=Cost(points=1),
                 message="This Unit gains a +1 Modifier to all IMPACT Hit Rolls.",
-                apply=lambda unit: unit.weapon("Devastating Charge").buff_hit(1),
+                apply=_buff_impact_hit,
             ),
             Upgrade(
                 "Adrenal Glands",
@@ -288,7 +294,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
             Weapon("Plasma Discharge", 12, Tag.Ground, 4, 3, Tag.Light, SurgeDie.D3P1, 1),
             Weapon("! Corrosive Bile", 14, Tag.Ground, 5, None, None, None, 1, tags=Tag.Sidearm | Tag.Hits),
             Weapon("Claws", "E", Tag.Ground, 2, 4, None, None, 1),
-            Weapon("Devastating Charge", "C", Tag.Ground, 2, 4, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 2, 4, None, None, 1, tags=Tag.Impact),
         ),
         squad=(
             Squad(Range(1, 1), 1, 160),
@@ -343,7 +349,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 4, None, None, 1),
             Weapon("Acid Saliva", 8, Tag.Ground, 3, 3, None, None, 1),
-            Weapon("Devastating Charge", "C", Tag.Ground, 2, 4, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 2, 4, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(2, 3), 1, 170),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground,
@@ -390,7 +396,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         hit_points=1,
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 5, None, None, 1),
-            Weapon("Devastating Charge", "C", Tag.Ground, 1, 5, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 1, 5, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(7, 18), 1, 260),),
         tags=Tag.Biological | Tag.Light | Tag.Ground,
@@ -415,7 +421,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Vile Claws", "E", Tag.Ground, 2, 4, None, None, 1),
             Weapon("Acid Saliva", 8, Tag.Ground, 4, 3, None, None, 1),
-            Weapon("Devastating Charge", "C", Tag.Ground, 1, 4, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 1, 4, None, None, 1, tags=Tag.Impact),
         ),
         squad=(Squad(Range(2, 3), 1, 200),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground,
@@ -454,7 +460,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 4, Tag.Light, SurgeDie.D3, 1),
             Weapon("Shredding Claws", "E", Tag.Ground, 2, 4, Tag.Light | Tag.Armoured, SurgeDie.D3, 1, exchange_for="Claws"),
-            Weapon("Devastating Charge", "C", Tag.Ground, 1, 5, None, None, 1),
+            Weapon("Devastating Charge", "A", Tag.Ground, 1, 5, None, None, 1, tags=Tag.Impact),
         ),
         squad=(
             Squad(Range(7, 12), 1, 180),
