@@ -30,7 +30,7 @@ class Cache:
                 else:
                     logger.warning("Cache version error; starting a new one from scratch")
                     self.data = manager.dict()
-        except (FileNotFoundError, AttributeError):
+        except (FileNotFoundError, AttributeError, EOFError, ValueError, pickle.UnpicklingError):
             logger.warning("Cache access error; starting a new one from scratch")
             self.data = manager.dict()
 
