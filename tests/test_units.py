@@ -24,8 +24,8 @@ def clone(name: str):
 def test_ancillary_carapace_applies_tough_only_to_first_weapon_of_each_clash():
     attacker = MusteredUnit.make(clone("Marine"), {})
     weapons = (
-        Weapon("First", 12, Tag.Ground, 1, "!", None, None, 1),
-        Weapon("Second", 12, Tag.Ground, 1, "!", None, None, 1),
+        Weapon("First", 12, Tag.Ground, 1, None, None, None, 1, tags=Tag.Hits),
+        Weapon("Second", 12, Tag.Ground, 1, None, None, None, 1, tags=Tag.Hits),
     )
     attacker.weapon_batches = [WeaponBatch(1, weapon) for weapon in weapons]
 

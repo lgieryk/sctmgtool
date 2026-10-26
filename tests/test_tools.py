@@ -202,6 +202,16 @@ def test_process_units():
     assert upgrade(processed_marine, "! Generic Evade-All").flags == Upgrade.Flags.TypeDefensive | Upgrade.Flags.Workaround
 
 
+def test_special_weapons_are_consistent():
+    for unit in process_unit_list(ALL_UNITS):
+        for weapon in unit.weapons:
+            if Tag.Hits in weapon.tags:
+                assert weapon.hit is None, f"{unit.name}/{weapon.name}: HITS must not have a Hit characteristic"
+                assert weapon.surge is None and weapon.surge_die is None, f"{unit.name}/{weapon.name}: HITS cannot generate Surge"
+            else:
+                assert weapon.hit is not None, f"{unit.name}/{weapon.name}: missing Hit characteristic requires HITS"
+
+
 def test_unit_buff():
     marine = muster("Marine")
 
