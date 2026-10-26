@@ -38,7 +38,8 @@ class DicePool:
         return len(self.dice)
 
     def roll(self):
-        self.dice = random.choices(D6POP, k=len(self.dice))
+        if self.dice:
+            self.dice = random.choices(D6POP, k=len(self.dice))
 
     def extend(self, dice: list[int]):
         self.dice.extend(dice)
@@ -341,6 +342,12 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
     else:
         attack_pool.roll()
         attack_pool.transfer_dice_to(armour_pool, afp(lambda x: x >= batch.weapon.hit))
+
+    # Workaround for abilities such as Psionic Storm: resolve successful hits as damage
+    # before the Surge, Armour and Tough steps. Tag.Hits supplies automatic hits when needed.
+    if Tag.DirectDamage in batch.weapon.tags:
+        attack_pool.transfer_dice_to(discard_pool)
+        armour_pool.transfer_dice_to(damage_pool)
 
     armour_bypass = DicePool.empty()
 
