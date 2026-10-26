@@ -132,6 +132,28 @@ def test_hits_skip_hit_roll_but_not_armour_roll():
     assert choices.call_count == 1
 
 
+def test_direct_damage_bypasses_armour_and_tough():
+    marine = muster("Marine")
+    marine.armour = 2
+    marine.tags |= Tag.Tough2
+    batch = WeaponBatch(1, Weapon("Direct Damage", "A", Tag.Ground, 3, 3, None, None, 1, tags=Tag.DirectDamage))
+
+    with patch("random.choices", side_effect=loaded_die(3)) as choices:
+        assert roll_damage(None, batch, marine) == 3
+    assert choices.call_count == 1
+
+
+def test_automatic_direct_damage_skips_hit_roll():
+    marine = muster("Marine")
+    marine.armour = 2
+    marine.tags |= Tag.Tough2
+    batch = WeaponBatch(1, Weapon("Direct Damage", "A", Tag.Ground, 3, None, None, None, 2, tags=Tag.Hits | Tag.DirectDamage))
+
+    with patch("random.choices") as choices:
+        assert roll_damage(None, batch, marine) == 6
+    choices.assert_not_called()
+
+
 def test_evade():
     marine = muster("Marine")
 

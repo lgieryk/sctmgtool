@@ -205,11 +205,27 @@ def test_process_units():
 def test_special_weapons_are_consistent():
     for unit in process_unit_list(ALL_UNITS):
         for weapon in unit.weapons:
+            special_tags = (Tag.Hits, Tag.Impact, Tag.DirectDamage)
+            active_special_tags = {tag for tag in special_tags if tag in weapon.tags}
+            assert len(active_special_tags) <= 1 or active_special_tags == {Tag.Hits, Tag.DirectDamage}, (
+                f"{unit.name}/{weapon.name}: only HITS and direct damage may be combined"
+            )
+
             if Tag.Hits in weapon.tags:
                 assert weapon.hit is None, f"{unit.name}/{weapon.name}: HITS must not have a Hit characteristic"
                 assert weapon.surge is None and weapon.surge_die is None, f"{unit.name}/{weapon.name}: HITS cannot generate Surge"
             else:
                 assert weapon.hit is not None, f"{unit.name}/{weapon.name}: missing Hit characteristic requires HITS"
+
+            if Tag.Impact in weapon.tags:
+                assert weapon.hit is not None, f"{unit.name}/{weapon.name}: IMPACT requires a Hit characteristic"
+                assert weapon.damage == 1, f"{unit.name}/{weapon.name}: IMPACT must have Damage 1"
+                assert weapon.surge is None and weapon.surge_die is None, f"{unit.name}/{weapon.name}: IMPACT cannot generate Surge"
+            if Tag.DirectDamage in weapon.tags:
+                assert weapon.surge is None and weapon.surge_die is None, f"{unit.name}/{weapon.name}: direct damage cannot generate Surge"
+                assert weapon.tags.precision() == 0, f"{unit.name}/{weapon.name}: direct damage cannot have Precision"
+                assert weapon.tags.critical_hit() == 0, f"{unit.name}/{weapon.name}: direct damage cannot have Critical Hit"
+                assert weapon.tags.pierce_armoured() == 0 and weapon.tags.pierce_light() == 0, f"{unit.name}/{weapon.name}: direct damage cannot have Pierce"
 
 
 def test_unit_buff():
