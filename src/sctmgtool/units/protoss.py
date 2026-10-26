@@ -360,7 +360,7 @@ _PROTOSS_UNITS: tuple[Unit, ...] = (
         hit_points=5,
         weapons=(
             Weapon("Master Warp Blade", "E", Tag.Ground, 4, 3, Tag.Light | Tag.Armoured, SurgeDie.D3, 2, tags=Tag.Instant),
-            Weapon("! Shadow Strike", "E", Tag.Ground, 4, "!", None, None, 1, tags=Tag.Sidearm),
+            Weapon("! Shadow Strike", "E", Tag.Ground, 4, None, None, None, 1, tags=Tag.Sidearm | Tag.Hits),
             Weapon("Devastating Charge", "C", Tag.Ground, 4, 4, None, None, 1),
         ),
         squad=(Squad(Range(1, 1), 1, 230),),
@@ -415,7 +415,7 @@ def _guardian_shield_effect(_, roll, pools):
 
 def _psionic_presence_effect(unit):
     for weapon in unit.weapons:
-        if weapon.type_letter != "C" and weapon.hit != "!":
+        if weapon.type_letter != "C" and weapon.hit is not None:
             weapon.add_tag(Tag.Precision1)
 
 

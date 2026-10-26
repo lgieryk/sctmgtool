@@ -336,7 +336,7 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
     ctx.call_hooks(Hook.RollPoolsInitiated, hooks.RollHookArgs(attacker, batch, defender), pha)
 
     # 1. Roll to hit
-    if batch.weapon.hit == "!":
+    if Tag.Hits in batch.weapon.tags:
         attack_pool.transfer_dice_to(armour_pool)
     else:
         attack_pool.roll()
@@ -349,7 +349,7 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
         attack_pool.transfer_dice_to(armour_bypass, up_to=precision)
 
     # 2. Resolve surge
-    surge_result = roll_surge(batch.weapon, defender)
+    surge_result = 0 if Tag.Hits in batch.weapon.tags else roll_surge(batch.weapon, defender)
     armour_pool.transfer_dice_to(armour_bypass, up_to=surge_result)
 
     # TODO: dodge - drop from armour_bypass

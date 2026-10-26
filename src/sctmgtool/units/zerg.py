@@ -286,7 +286,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         hit_points=9,
         weapons=(
             Weapon("Plasma Discharge", 12, Tag.Ground, 4, 3, Tag.Light, SurgeDie.D3P1, 1),
-            Weapon("! Corrosive Bile", 14, Tag.Ground, 5, "!", None, None, 1, tags=Tag.Sidearm),
+            Weapon("! Corrosive Bile", 14, Tag.Ground, 5, None, None, None, 1, tags=Tag.Sidearm | Tag.Hits),
             Weapon("Claws", "E", Tag.Ground, 2, 4, None, None, 1),
             Weapon("Devastating Charge", "C", Tag.Ground, 2, 4, None, None, 1),
         ),
