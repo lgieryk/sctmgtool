@@ -40,6 +40,7 @@ def get_units_json() -> str:
     return json.dumps(
         {
             "cacheRevision": {"app": APP_REVISION, "charts": CHARTS_REVISION},
+            "unitDataRevision": sctmgtool.UNIT_DATA_REVISION,
             "units": [serialize_unit(unit) for unit in units],
         },
         ensure_ascii=False,
