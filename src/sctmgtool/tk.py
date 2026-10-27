@@ -158,7 +158,7 @@ def tkinter_main(units: list[Unit]):
     root = ctk.CTk()
     root.withdraw()
     root.geometry("1200x800")
-    root.title("SC:TMG Tool")
+    root.title(f"SC:TMG Tool · {sctmgtool.application_revision_label()}")
 
     mono_font = ctk.CTkFont(family="Consolas")
 
