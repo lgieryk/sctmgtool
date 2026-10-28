@@ -427,13 +427,17 @@ class ClashType(Enum):
 
 
 def select_weapons(attacker: MusteredUnit, defender: MusteredUnit, clash_type: ClashType) -> list[WeaponBatch]:
+    def is_on_charge_chart(weapon: Weapon):
+        return weapon.type_letter == "A" and (Weapon.Flags.TriggeredByCharge in weapon.flags or Weapon.Flags.ResolvedInMovement in weapon.flags)
+
     def is_applicable(weapon: Weapon):
         if clash_type == ClashType.Charge:
-            return weapon.type_letter == "A" and bool(weapon.target & defender.tags)
+            return is_on_charge_chart(weapon) and bool(weapon.target & defender.tags)
         elif clash_type == ClashType.CloseCombat:
             return Tag.Ground in defender.tags and weapon.type_letter == "E"
         else:
-            return weapon.type_letter == "R" and weapon.target & defender.tags
+            is_ranged = weapon.type_letter == "R" or (weapon.type_letter == "A" and not is_on_charge_chart(weapon))
+            return is_ranged and bool(weapon.target & defender.tags)
 
     batches = [batch for batch in attacker.weapon_batches if is_applicable(batch.weapon)]
     return sorted(batches, key=lambda batch: batch.weapon.tags.concentrated_fire() == 0)
