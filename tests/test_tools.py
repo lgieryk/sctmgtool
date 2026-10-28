@@ -31,9 +31,9 @@ class Case(NamedTuple):
 
 
 cases = (
-    Case(ClashType.Charge, Tag.Ground, ("Ability",)),
+    Case(ClashType.Charge, Tag.Ground, ("ChargeAbility", "MovementAbility")),
     Case(ClashType.CloseCombat, Tag.Ground, ("CloseCombat",)),
-    Case(ClashType.Ranged, Tag.Ground, ("GroundRanged", "ComboRanged")),
+    Case(ClashType.Ranged, Tag.Ground, ("GroundRanged", "ComboRanged", "Ability")),
     Case(ClashType.Charge, Tag.Flying, ()),
     Case(ClashType.CloseCombat, Tag.Flying, ()),
     Case(ClashType.Ranged, Tag.Flying, ("FlyingRanged", "ComboRanged")),
@@ -48,7 +48,31 @@ def test_select_weapons(case: Case):
         Weapon("GroundRanged", 10, Tag.Ground, 0, 0, None, None, 1, tags=Tag.Sidearm),
         Weapon("ComboRanged", 10, Tag.Ground | Tag.Flying, 0, 0, None, None, 1, tags=Tag.Sidearm),
         Weapon("CloseCombat", "E", Tag.Ground, 0, 0, None, None, 1),
-        Weapon("Ability", "A", Tag.Ground, 0, 0, None, None, 1),
+        Weapon("Ability", "A", Tag.Ground, 0, 0, None, None, 1, tags=Tag.Sidearm, flags=Weapon.Flags.SimulationProfile),
+        Weapon(
+            "ChargeAbility",
+            "A",
+            Tag.Ground,
+            0,
+            0,
+            None,
+            None,
+            1,
+            tags=Tag.Sidearm,
+            flags=Weapon.Flags.SimulationProfile | Weapon.Flags.TriggeredByCharge,
+        ),
+        Weapon(
+            "MovementAbility",
+            "A",
+            Tag.Ground,
+            0,
+            0,
+            None,
+            None,
+            1,
+            tags=Tag.Sidearm,
+            flags=Weapon.Flags.SimulationProfile | Weapon.Flags.ResolvedInMovement,
+        ),
     )
 
     attacker = MusteredUnit.make(proto_marine, {})

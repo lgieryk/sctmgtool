@@ -158,6 +158,7 @@ class Weapon:
         None_ = 0
         SimulationProfile = auto()
         TriggeredByCharge = auto()
+        ResolvedInMovement = auto()
 
     name: str
     range: int | str
