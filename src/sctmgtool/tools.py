@@ -206,14 +206,17 @@ class MusteredUnit(Unit):
         unit.fingerprint = MusteredUnit.make_fingerprint(prototype, config, is_attacker)
         unit.models = unit.fingerprint.squad_size
 
-        def upgrade_exists(weapon_name):
-            return any(weapon_name == upgrade.name and Upgrade.Flags.ReplacedByWorkaround not in upgrade.flags for upgrade in unit.upgrades)
+        def upgrade_exists(weapon):
+            upgrade_names = {weapon.name}
+            if Weapon.Flags.SimulationProfile in weapon.flags:
+                upgrade_names.add(weapon.name.removeprefix("! "))
+            return any(upgrade.name in upgrade_names and Upgrade.Flags.ReplacedByWorkaround not in upgrade.flags for upgrade in unit.upgrades)
 
         default_added = []
 
         # Enable the 1st non-upgrade weapon of each type (ability, melee, ranged) and all sidearms
         for w in unit.weapons:
-            if upgrade_exists(w.name):
+            if upgrade_exists(w):
                 continue
 
             if w.tags & Tag.Sidearm:
