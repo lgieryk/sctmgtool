@@ -157,6 +157,7 @@ class Weapon:
     class Flags(Flag):
         None_ = 0
         SimulationProfile = auto()
+        TriggeredByCharge = auto()
 
     name: str
     range: int | str

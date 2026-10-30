@@ -31,10 +31,10 @@ class Case(NamedTuple):
 
 
 cases = (
-    Case(ClashType.Ability, Tag.Ground, ("Ability",)),
+    Case(ClashType.Charge, Tag.Ground, ("Ability",)),
     Case(ClashType.CloseCombat, Tag.Ground, ("CloseCombat",)),
     Case(ClashType.Ranged, Tag.Ground, ("GroundRanged", "ComboRanged")),
-    Case(ClashType.Ability, Tag.Flying, ()),
+    Case(ClashType.Charge, Tag.Flying, ()),
     Case(ClashType.CloseCombat, Tag.Flying, ()),
     Case(ClashType.Ranged, Tag.Flying, ("FlyingRanged", "ComboRanged")),
 )
