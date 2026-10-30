@@ -211,6 +211,13 @@ class Weapon:
     def type_letter(self):
         return self.range if self.range in ("E", "A") else "R"
 
+    def _format_rate_of_attack(self):
+        rate_of_attack = str(self.rate_of_attack)
+        template, separator, modifiers = rate_of_attack.partition("+")
+        if template.startswith("BT:"):
+            return f"BT{separator}{modifiers}"
+        return rate_of_attack
+
     def __str__(self):
         ef = f" FOR:{self.exchange_for}" if self.exchange_for != "" else ""
         surge = f" {self.surge or ''!s:<16} {self.surge_die or ''!s:<4}"
@@ -222,7 +229,7 @@ class Weapon:
         else:
             tgt = "G " if Tag.Ground in self.target else "F "
 
-        return f"{self.name:<30} {self.range:>2} {tgt} {self.rate_of_attack}D6 {hit} {surge} DMG:{self.damage} {tags:<20}{ef}"
+        return f"{self.name:<30} {self.range:>2} {tgt} {self._format_rate_of_attack()}D6 {hit} {surge} DMG:{self.damage} {tags:<20}{ef}"
 
 
 class Range(NamedTuple):

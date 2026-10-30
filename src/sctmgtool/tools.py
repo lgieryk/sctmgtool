@@ -18,7 +18,12 @@ from sctmgtool.base import Hook, StatefulHook, Tag, Unit, Upgrade, Weapon
 logger = logging.getLogger(__name__)
 
 D6POP = (1, 2, 3, 4, 5, 6)
-TEMPLATE_TARGET_RATIO = 0.6
+# Coverage estimates account for each template's placement rules.
+TEMPLATE_TARGET_RATIOS = {
+    "BT:Plague": ((4, 0.87), (6, 0.76), (9, 0.66), (12, 0.48), (None, 0.40)),
+    "BT:Psionic Storm": ((4, 0.84), (6, 0.79), (9, 0.68), (12, 0.55), (None, 0.45)),
+    "BT:Shock Cannon": ((9, 1.00), (12, 0.74), (None, 0.66)),
+}
 
 
 class DicePool:
@@ -158,9 +163,13 @@ class MusteredUnit(Unit):
         self.tags |= tag
 
     def template_targets(self, template: str) -> int:
-        if template != "BT":
+        try:
+            ratios = TEMPLATE_TARGET_RATIOS[template]
+        except KeyError:
             raise ValueError(f"Unsupported template: {template}")
-        return max(1, round(self.models * TEMPLATE_TARGET_RATIO))
+
+        ratio = next(ratio for max_models, ratio in ratios if max_models is None or self.models <= max_models)
+        return max(1, round(self.models * ratio))
 
     def buff_armour(self, value: int):
         self.armour = max(2, self.armour - value)
@@ -312,7 +321,9 @@ def roll_surge(weapon: Weapon, defender: MusteredUnit):
         return 0
     roll_params = weapon.surge_die.value
     if roll_params.bt:
-        return defender.template_targets(weapon.surge_die.name)
+        assert isinstance(weapon.rate_of_attack, str)
+        template = weapon.rate_of_attack.split("+", maxsplit=1)[0]
+        return defender.template_targets(template)
     return sum((value + 1) // 2 for value in random.choices(D6POP, k=roll_params.d3)) + sum(random.choices(D6POP, k=roll_params.d6)) + roll_params.add
 
 

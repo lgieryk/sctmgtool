@@ -300,7 +300,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
         hit_points=14,
         weapons=(
             Weapon("Twin Cannon", 12, Tag.Ground, 8, 3, Tag.Armoured, SurgeDie.D6, 1, tags=Tag.PierceArmoured2),
-            Weapon("Shock Cannon", 18, Tag.Ground, "BT+4", 4, Tag.Light | Tag.Armoured, SurgeDie.BT, 1, exchange_for="Twin Cannon"),
+            Weapon("Shock Cannon", 18, Tag.Ground, "BT:Shock Cannon+4", 4, Tag.Light | Tag.Armoured, SurgeDie.BT, 1, exchange_for="Twin Cannon"),
             Weapon("Rolling Over", "E", Tag.Ground, 2, 2, None, None, 1),
             Weapon("! Devastating Charge", "A", Tag.Ground, 4, 3, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),

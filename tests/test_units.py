@@ -114,6 +114,7 @@ def test_siege_tank_shock_cannon_automatically_applies_aftershock_rounds():
     tank = muster("Siege Tank", {"! Shock Cannon / Aftershock Rounds": True})
     shock_cannon = tank.batch("Shock Cannon")
     assert shock_cannon is not None
+    assert shock_cannon.weapon.rate_of_attack == "BT:Shock Cannon+4"
     assert tank.batch("Twin Cannon") is None
 
     defender = muster("Marine")
