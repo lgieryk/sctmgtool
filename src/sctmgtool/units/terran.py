@@ -95,7 +95,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
                 "Haywire Missiles", 12, Tag.Ground, 3, 3, Tag.Armoured, SurgeDie.D3, 1, tags=Tag.Sidearm | Tag.PierceArmoured3, exchange_for="Hellfire Missiles"
             ),
             Weapon("Stomp", "E", Tag.Ground, 4, 5, None, None, 1),
-            Weapon("Devastating Charge", "A", Tag.Ground, 4, 3, None, None, 1, tags=Tag.Impact),
+            Weapon("! Devastating Charge", "A", Tag.Ground, 4, 3, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),
         squad=(Squad(Range(1, 1), 2, 190),),
         tags=Tag.Armoured | Tag.Mechanical | Tag.Ground,
@@ -302,7 +302,7 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
             Weapon("Twin Cannon", 12, Tag.Ground, 8, 3, Tag.Armoured, SurgeDie.D6, 1, tags=Tag.PierceArmoured2),
             Weapon("Shock Cannon", 18, Tag.Ground, "BT+4", 4, Tag.Light | Tag.Armoured, SurgeDie.BT, 1, exchange_for="Twin Cannon"),
             Weapon("Rolling Over", "E", Tag.Ground, 2, 2, None, None, 1),
-            Weapon("Devastating Charge", "A", Tag.Ground, 4, 3, None, None, 1, tags=Tag.Impact),
+            Weapon("! Devastating Charge", "A", Tag.Ground, 4, 3, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),
         squad=(Squad(Range(1, 1), 2, 220),),
         tags=Tag.Mechanical | Tag.Ground | Tag.Armoured,

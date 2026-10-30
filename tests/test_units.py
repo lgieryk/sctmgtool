@@ -9,6 +9,8 @@ from sctmgtool.base import Hook, Tag, Upgrade, Weapon
 from sctmgtool.histogram import simulate_clash
 from sctmgtool.tools import ClashType, HookContext, MusteredUnit, WeaponBatch, process_unit_list
 from sctmgtool.units import ALL_UNITS
+from sctmgtool.units.terran import TERRAN_UNITS
+from sctmgtool.units.zerg import ZERG_UNITS
 
 
 def muster(name: str, config=None):
@@ -19,6 +21,20 @@ def muster(name: str, config=None):
 def clone(name: str):
     prototype = next(unit for unit in ALL_UNITS if unit.name == name)
     return deepcopy(prototype)
+
+
+def test_debilitating_saliva_ignores_units_without_ranged_weapons():
+    vile = next(unit for unit in ZERG_UNITS if unit.name == "Vile (Roach)")
+    defender = MusteredUnit.make(vile, {"Debilitating Saliva": True}, is_attacker=False)
+
+    medic = MusteredUnit.make(next(unit for unit in TERRAN_UNITS if unit.name == "Medic"), {})
+    HookContext(medic, defender).apply_opponent_hooks(medic, defender)
+    assert medic.batch("Strike").weapon.hit == 5
+
+    marine = MusteredUnit.make(next(unit for unit in TERRAN_UNITS if unit.name == "Marine"), {})
+    HookContext(marine, defender).apply_opponent_hooks(marine, defender)
+    assert marine.batch("C-14 rifle").weapon.hit == 4
+    assert marine.batch("Strike").weapon.hit == 5
 
 
 def test_ancillary_carapace_applies_tough_only_to_first_weapon_of_each_clash():
@@ -72,6 +88,13 @@ def test_psionic_presence_does_not_affect_shadow_strike():
 
     assert Tag.Precision1 in zeratul.batch("Master Warp Blade").weapon.tags
     assert Tag.Precision1 not in zeratul.batch("! Shadow Strike").weapon.tags
+
+
+def test_simulated_ability_profiles_are_marked_in_their_names():
+    profiles = [weapon for unit in ALL_UNITS for weapon in unit.weapons if Weapon.Flags.SimulationProfile in weapon.flags]
+
+    assert profiles
+    assert all(weapon.name.startswith("! ") for weapon in profiles)
 
 
 def test_siege_tank_shock_cannon_automatically_applies_aftershock_rounds():
