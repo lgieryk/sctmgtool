@@ -421,14 +421,14 @@ def roll_damage(attacker: MusteredUnit, batch: WeaponBatch, defender: MusteredUn
 
 class ClashType(Enum):
     # pylint: disable=invalid-name
-    Ability = "Ability"
+    Charge = "Charge"
     Ranged = "Ranged"
     CloseCombat = "Close Combat"
 
 
 def select_weapons(attacker: MusteredUnit, defender: MusteredUnit, clash_type: ClashType) -> list[WeaponBatch]:
     def is_applicable(weapon: Weapon):
-        if clash_type == ClashType.Ability:
+        if clash_type == ClashType.Charge:
             return weapon.type_letter == "A" and bool(weapon.target & defender.tags)
         elif clash_type == ClashType.CloseCombat:
             return Tag.Ground in defender.tags and weapon.type_letter == "E"
