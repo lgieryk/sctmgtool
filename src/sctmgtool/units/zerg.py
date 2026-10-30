@@ -5,6 +5,12 @@
 from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, StatefulHook, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
 
 
+def _debuff_hit_of_ranged_weapons(unit):
+    for weapon in unit.weapons:
+        if weapon.type_letter == "R":
+            weapon.debuff_hit(1)
+
+
 def _activate_corrosive_bile_only(unit):
     if unit.batch("! Corrosive Bile") is None:
         unit.activate_weapon("! Corrosive Bile")
@@ -53,7 +59,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Acid Saliva", 8, Tag.Ground, 2, 3, None, None, 1),
             Weapon("Claws", "E", Tag.Ground, 3, 4, Tag.Light, SurgeDie.D3P1, 1),
-            Weapon("Devastating Charge", "A", Tag.Ground, 3, 4, None, None, 1, tags=Tag.Impact),
+            Weapon("! Devastating Charge", "A", Tag.Ground, 3, 4, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),
         squad=(Squad(Range(2, 3), 1, 240),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground,
@@ -142,7 +148,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Energy Blast", 8, Tag.Ground | Tag.Flying, 5, 3, Tag.Light | Tag.Armoured, SurgeDie.D3, 1),
             Weapon("Blades", "E", Tag.Ground, 6, 4, None, None, 2, tags=Tag.CriticalHit2),
-            Weapon("Devastating Charge", "A", Tag.Ground, 4, 4, None, None, 1, tags=Tag.Impact),
+            Weapon("! Devastating Charge", "A", Tag.Ground, 4, 4, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),
         squad=(Squad(Range(1, 1), 1, 250),),
         tags=Tag.Biological | Tag.Psionic | Tag.Ground | Tag.Unique,
@@ -171,7 +177,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         hit_points=2,
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 3, Tag.Light | Tag.Armoured, SurgeDie.D6, 1, tags=Tag.Instant),
-            Weapon("Devastating Charge", "A", Tag.Ground, 2, 5, None, None, 1, tags=Tag.Impact),
+            Weapon("! Devastating Charge", "A", Tag.Ground, 2, 5, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),
         squad=(Squad(Range(4, 6), 1, 250),),
         tags=Tag.Biological | Tag.Light | Tag.Ground | Tag.Unique,
@@ -224,7 +230,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
             Weapon("Talons (Assault)", "6", Tag.Ground, 4, 4, Tag.Light, SurgeDie.D3, 2),
             # Note: Spines are not actually a "for" replacement
             Weapon("Acid spines", 12, Tag.Flying, 4, 4, Tag.Light | Tag.Armoured, SurgeDie.D3, 2, exchange_for="Talons (Assault)"),
-            Weapon("Devastating Charge", "A", Tag.Ground, 4, 3, None, None, 1, tags=Tag.Impact),
+            Weapon("! Devastating Charge", "A", Tag.Ground, 4, 3, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),
         squad=(Squad(Range(1, 1), 1, 150),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground | Tag.Psionic,
@@ -252,7 +258,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 4, Tag.Light, SurgeDie.D3, 1),
             Weapon("Shredding Claws", "E", Tag.Ground, 2, 4, Tag.Light | Tag.Armoured, SurgeDie.D3, 1, exchange_for="Claws"),
-            Weapon("Devastating Charge", "A", Tag.Ground, 1, 5, None, None, 1, tags=Tag.Impact),
+            Weapon("! Devastating Charge", "A", Tag.Ground, 1, 5, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),
         squad=(
             Squad(Range(7, 12), 1, 240),
@@ -292,9 +298,20 @@ ZERG_UNITS: tuple[Unit, ...] = (
         hit_points=9,
         weapons=(
             Weapon("Plasma Discharge", 12, Tag.Ground, 4, 3, Tag.Light, SurgeDie.D3P1, 1),
-            Weapon("! Corrosive Bile", 14, Tag.Ground, 5, None, None, None, 1, tags=Tag.Sidearm | Tag.Hits),
+            Weapon(
+                "! Corrosive Bile",
+                14,
+                Tag.Ground,
+                5,
+                None,
+                None,
+                None,
+                1,
+                tags=Tag.Sidearm | Tag.Hits,
+                flags=Weapon.Flags.SimulationProfile,
+            ),
             Weapon("Claws", "E", Tag.Ground, 2, 4, None, None, 1),
-            Weapon("Devastating Charge", "A", Tag.Ground, 2, 4, None, None, 1, tags=Tag.Impact),
+            Weapon("! Devastating Charge", "A", Tag.Ground, 2, 4, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),
         squad=(
             Squad(Range(1, 1), 1, 160),
@@ -349,7 +366,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 4, None, None, 1),
             Weapon("Acid Saliva", 8, Tag.Ground, 3, 3, None, None, 1),
-            Weapon("Devastating Charge", "A", Tag.Ground, 2, 4, None, None, 1, tags=Tag.Impact),
+            Weapon("! Devastating Charge", "A", Tag.Ground, 2, 4, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),
         squad=(Squad(Range(2, 3), 1, 170),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground,
@@ -396,7 +413,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         hit_points=1,
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 5, None, None, 1),
-            Weapon("Devastating Charge", "A", Tag.Ground, 1, 5, None, None, 1, tags=Tag.Impact),
+            Weapon("! Devastating Charge", "A", Tag.Ground, 1, 5, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),
         squad=(Squad(Range(7, 18), 1, 260),),
         tags=Tag.Biological | Tag.Light | Tag.Ground,
@@ -421,7 +438,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Vile Claws", "E", Tag.Ground, 2, 4, None, None, 1),
             Weapon("Acid Saliva", 8, Tag.Ground, 4, 3, None, None, 1),
-            Weapon("Devastating Charge", "A", Tag.Ground, 1, 4, None, None, 1, tags=Tag.Impact),
+            Weapon("! Devastating Charge", "A", Tag.Ground, 1, 4, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),
         squad=(Squad(Range(2, 3), 1, 200),),
         tags=Tag.Biological | Tag.Armoured | Tag.Ground,
@@ -436,7 +453,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
                 "Debilitating Saliva",
                 cost=Cost(points=1),
                 message="Use when an Enemy Unit Within 8\" of this Unit declares a Ranged Attack. Apply DEBUFF Hit (1) to each of that Unit's Ranged Weapons.",
-                apply={Hook.ModifyOpponent: lambda unit: unit.weapon("@type_letter==R").debuff_hit(1)},
+                apply={Hook.ModifyOpponent: _debuff_hit_of_ranged_weapons},
                 flags=Upgrade.Flags.TypeDefensive,
             ),
             Upgrade("Burrow", flags=Upgrade.Flags.TypeOther),
@@ -460,7 +477,7 @@ ZERG_UNITS: tuple[Unit, ...] = (
         weapons=(
             Weapon("Claws", "E", Tag.Ground, 2, 4, Tag.Light, SurgeDie.D3, 1),
             Weapon("Shredding Claws", "E", Tag.Ground, 2, 4, Tag.Light | Tag.Armoured, SurgeDie.D3, 1, exchange_for="Claws"),
-            Weapon("Devastating Charge", "A", Tag.Ground, 1, 5, None, None, 1, tags=Tag.Impact),
+            Weapon("! Devastating Charge", "A", Tag.Ground, 1, 5, None, None, 1, tags=Tag.Impact, flags=Weapon.Flags.SimulationProfile),
         ),
         squad=(
             Squad(Range(7, 12), 1, 180),
