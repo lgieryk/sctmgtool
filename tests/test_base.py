@@ -97,6 +97,24 @@ def test_str():
     assert "5D6 -   " in str(automatic_hit)
     assert "Hits" in str(automatic_hit)
 
+    simulated_ability = Weapon(
+        "! ability",
+        "A",
+        Tag.Ground,
+        1,
+        None,
+        None,
+        None,
+        1,
+        tags=Tag.Sidearm | Tag.Specialist | Tag.Hits | Tag.DirectDamage,
+        flags=Weapon.Flags.SimulationProfile,
+    )
+    assert "SIMULATED ABILITY" in str(simulated_ability)
+    assert "Sidearm" not in str(simulated_ability)
+    assert "Specialist" not in str(simulated_ability)
+    assert "Hits" not in str(simulated_ability)
+    assert "DirectDamage" not in str(simulated_ability)
+
     s_die = SurgeDie.D3P1
     assert str(s_die) == "D3P1"
     assert repr(s_die) == "SurgeDie.D3P1"

@@ -96,6 +96,28 @@ def test_muster_weapons():
     assert not is_selected(marine, "AlternativeBad")
 
 
+def test_simulated_ability_profile_can_use_official_upgrade_name():
+    prototype = clone("Marine")
+    prototype.weapons = (
+        Weapon(
+            "! Ability",
+            "A",
+            Tag.Ground,
+            1,
+            None,
+            None,
+            None,
+            1,
+            tags=Tag.Sidearm | Tag.Hits,
+            flags=Weapon.Flags.SimulationProfile,
+        ),
+    )
+    prototype.upgrades = (Upgrade("Ability", apply=lambda unit: unit.activate_weapon("! Ability")),)
+
+    assert MusteredUnit.make(prototype, {}).batch("! Ability") is None
+    assert MusteredUnit.make(prototype, {"Ability": True}).batch("! Ability") is not None
+
+
 def test_mustered_unit_str_includes_squad_and_role_upgrade_points():
     prototype = clone("Marine")
     prototype.upgrades = (

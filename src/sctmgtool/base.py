@@ -3,7 +3,7 @@
 
 import enum
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, Flag, auto
 from typing import NamedTuple
 
@@ -154,6 +154,10 @@ class SurgeDie(Enum):
 
 @dataclass
 class Weapon:
+    class Flags(Flag):
+        None_ = 0
+        SimulationProfile = auto()
+
     name: str
     range: int | str
     target: Tag
@@ -165,6 +169,7 @@ class Weapon:
     exchange_for: str = ""
     # pylint: disable-next=protected-access
     tags: Tag = Tag._None
+    flags: Flags = field(default=Flags.None_, repr=False)
 
     def add_tag(self, tag: Tag):
         if tag & self.tags:  # replace the existing value-tag with a new value, e.g., Pierce1 -> Pierce2
@@ -210,13 +215,14 @@ class Weapon:
         ef = f" FOR:{self.exchange_for}" if self.exchange_for != "" else ""
         surge = f" {self.surge or ''!s:<16} {self.surge_die or ''!s:<4}"
         hit = f"{self.hit}+" if self.hit is not None else "- "
+        tags = "SIMULATED ABILITY" if Weapon.Flags.SimulationProfile in self.flags else str(self.tags)
 
         if Tag.Flying in self.target and Tag.Ground in self.target:
             tgt = "GF"
         else:
             tgt = "G " if Tag.Ground in self.target else "F "
 
-        return f"{self.name:<30} {self.range:>2} {tgt} {self.rate_of_attack}D6 {hit} {surge} DMG:{self.damage} {self.tags!s:<20}{ef}"
+        return f"{self.name:<30} {self.range:>2} {tgt} {self.rate_of_attack}D6 {hit} {surge} DMG:{self.damage} {tags:<20}{ef}"
 
 
 class Range(NamedTuple):
