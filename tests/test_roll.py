@@ -3,6 +3,8 @@
 
 from unittest.mock import patch
 
+import pytest
+
 from sctmgtool.base import Hook, Range, Squad, SurgeDie, Unit, UnitType, Upgrade
 from sctmgtool.tools import DicePool, HookContext, MusteredUnit, Tag, Weapon, WeaponBatch, attack_pool_size, roll_damage, roll_surge
 from sctmgtool.units import TERRAN_UNITS
@@ -58,10 +60,33 @@ def test_roll_surge():
     with patch("random.choices", side_effect=loaded_die(4)):
         assert roll_surge(anti_light2, marine) == 3
 
-    template_surge = Weapon("Blast", 0, Tag.Ground, 0, 0, Tag.Light, SurgeDie.BT, 1)
+    template_surge = Weapon("Blast", 0, Tag.Ground, "BT:Shock Cannon+4", 0, Tag.Light, SurgeDie.BT, 1)
     with patch.object(marine, "template_targets", return_value=4) as template_targets:
         assert roll_surge(template_surge, marine) == 4
-    template_targets.assert_called_once_with("BT")
+    template_targets.assert_called_once_with("BT:Shock Cannon")
+
+
+@pytest.mark.parametrize(
+    ("models", "expected"),
+    [
+        (3, {"BT:Plague": 3, "BT:Psionic Storm": 3, "BT:Shock Cannon": 3}),
+        (4, {"BT:Plague": 3, "BT:Psionic Storm": 3, "BT:Shock Cannon": 4}),
+        (6, {"BT:Plague": 5, "BT:Psionic Storm": 5, "BT:Shock Cannon": 6}),
+        (9, {"BT:Plague": 6, "BT:Psionic Storm": 6, "BT:Shock Cannon": 9}),
+        (12, {"BT:Plague": 6, "BT:Psionic Storm": 7, "BT:Shock Cannon": 9}),
+        (18, {"BT:Plague": 7, "BT:Psionic Storm": 8, "BT:Shock Cannon": 12}),
+    ],
+)
+def test_template_targets_are_approximated_from_squad_size(models, expected):
+    marine = muster("Marine")
+    marine.models = models
+
+    assert {template: marine.template_targets(template) for template in expected} == expected
+
+
+def test_unknown_template_is_rejected():
+    with pytest.raises(ValueError, match="Unsupported template: BT:Unknown"):
+        muster("Marine").template_targets("BT:Unknown")
 
 
 def test_attack_pool_size():
@@ -70,12 +95,12 @@ def test_attack_pool_size():
     regular_batch = WeaponBatch(4, Weapon("Regular", 0, Tag.Ground, 3, 0, None, None, 1))
     assert attack_pool_size(regular_batch, marine) == 12
 
-    template_weapon = Weapon("Template", 0, Tag.Ground, "BT+4", 0, None, None, 1)
+    template_weapon = Weapon("Template", 0, Tag.Ground, "BT:Shock Cannon+4", 0, None, None, 1)
     template_batch = WeaponBatch(1, template_weapon)
-    assert attack_pool_size(template_batch, marine) == 8
+    assert attack_pool_size(template_batch, marine) == 10
 
     template_weapon.buff_roa(2)
-    assert attack_pool_size(template_batch, marine) == 10
+    assert attack_pool_size(template_batch, marine) == 12
 
 
 def test_roll_damage():
