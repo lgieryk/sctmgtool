@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const defenderUpgrades = document.querySelector("#defender-upgrades");
   const connectionError = document.querySelector("#connection-error");
   const linkVersionWarning = document.querySelector("#link-version-warning");
+  const revisionInfo = document.querySelector("#revision-info");
   const resultsContainer = document.querySelector("#results-container");
   const resultsImage = document.querySelector("#results-image");
 
@@ -263,8 +264,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    const { cacheRevision, units } = await response.json();
+    const { cacheRevision, unitDataRevision, units } = await response.json();
     hideConnectionError();
+    revisionInfo.textContent = unitDataRevision
+      ? `Version ${cacheRevision.app} · Unit data: ${unitDataRevision}`
+      : `Version ${cacheRevision.app}`;
+    revisionInfo.hidden = false;
     const factionOrder = { Terran: 0, Protoss: 1, Zerg: 2 };
 
     units.sort(

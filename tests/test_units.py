@@ -69,6 +69,22 @@ def test_ravager_corrosive_bile_weapon_combinations():
         assert active == expected
 
 
+def test_zerg_ground_and_flying_weapon_combinations():
+    cases = (
+        ("Queen", "Talons (Assault)", "Acid spines", "! Acid spines"),
+        ("Zagara", "Zagara's Talons", "Zagara's Acid Spines", "! Zagara's Acid Spines"),
+    )
+
+    for unit_name, ground_weapon, flying_weapon, upgrade in cases:
+        unit = muster(unit_name)
+        assert unit.batch(ground_weapon) is not None
+        assert unit.batch(flying_weapon) is None
+
+        unit = muster(unit_name, {upgrade: True})
+        assert unit.batch(ground_weapon) is None
+        assert unit.batch(flying_weapon) is not None
+
+
 def test_zeratul_shadow_strike_weapon_combinations():
     cases = (
         ({}, ("Master Warp Blade",)),
@@ -90,11 +106,34 @@ def test_psionic_presence_does_not_affect_shadow_strike():
     assert Tag.Precision1 not in zeratul.batch("! Shadow Strike").weapon.tags
 
 
-def test_simulated_ability_profiles_are_marked_in_their_names():
-    profiles = [weapon for unit in ALL_UNITS for weapon in unit.weapons if Weapon.Flags.SimulationProfile in weapon.flags]
+def test_our_minds_as_one_buffs_psionic_storm_at_supply_two():
+    upgrade = "! Our Minds as One"
+    storm = "! Psionic Storm / Assault phase"
 
-    assert profiles
-    assert all(weapon.name.startswith("! ") for weapon in profiles)
+    processed_templar = process_unit_list((clone("High Templar"),))[0]
+    processed_upgrade = next(item for item in processed_templar.upgrades if item.name == upgrade)
+    assert Upgrade.Flags.TypeOffensive in processed_upgrade.flags
+
+    small_unit = muster("High Templar", {upgrade: True, storm: True})
+    large_unit = muster("High Templar", {"_squad_size": 3, upgrade: True, storm: True})
+
+    assert small_unit.batch(storm).weapon.hit == 5
+    assert large_unit.batch(storm).weapon.hit == 4
+
+
+def test_direct_damage_ability_profile():
+    profile_name = "! Psi Lightning"
+    assert muster("Tassadar").batch(profile_name) is None
+
+    batch = muster("Tassadar", {"Psi Lightning": True}).batch(profile_name)
+    weapon = batch.weapon
+    assert batch.model_num == 1
+    assert weapon.range == "A"
+    assert weapon.target == Tag.Flying | Tag.Ground
+    assert weapon.rate_of_attack == 1
+    assert weapon.hit is None
+    assert weapon.damage == 1
+    assert weapon.tags == Tag.Sidearm | Tag.Specialist | Tag.Hits | Tag.DirectDamage
 
 
 def test_siege_tank_shock_cannon_automatically_applies_aftershock_rounds():
@@ -121,3 +160,104 @@ def test_siege_tank_shock_cannon_automatically_applies_aftershock_rounds():
     damage = hooks.DamageHookArgs(shock_cannon.weapon.damage)
     HookContext(tank).call_hooks(Hook.ModifyDamage, hooks.RollHookArgs(tank, shock_cannon, defender), damage)
     assert damage.value == defender.size
+
+
+def test_biological_structure_negates_impact_attacks():
+    attacker = muster("Zergling")
+    attacker.weapon_batches = [WeaponBatch(1, Weapon("Impact", "A", Tag.Ground, 1, 2, None, None, 1, tags=Tag.Impact))]
+    defender = MusteredUnit.make(clone("Bile Launcher"), {"Biological Structure": True}, is_attacker=False)
+
+    with patch("sctmgtool.tools.random.choices", side_effect=lambda _, k: [2] * k):
+        histogram = simulate_clash(attacker, defender, roll_count=1)[ClashType.Charge]
+
+    assert histogram.damage[0] == 100
+
+
+def test_dark_swarm_and_broodmother_workarounds_apply_size_dependent_effects():
+    vileling = MusteredUnit.make(
+        clone("Vileling (Zergling)"),
+        {"! Dark Swarm / Defiler": True},
+        is_attacker=False,
+    )
+    assert vileling.evade_reroll == "REA"
+    assert vileling.evade == 4
+
+    vileling = muster("Vileling (Zergling)", {"! Broodmother / Zagara": True})
+    assert vileling.batch("! Devastating Charge").weapon.hit == 4
+    assert vileling.batch("Claws").weapon.hit == 5
+
+    defiler = clone("Defiler")
+    defiler.weapons = (*defiler.weapons, Weapon("Other Ability", "A", Tag.Ground, 1, 3, None, None, 1))
+    defiler = MusteredUnit.make(defiler, {"! Broodmother / Zagara": True})
+    assert all(Tag.CriticalHit1 in weapon.tags for weapon in defiler.weapons if Tag.Impact not in weapon.tags)
+    assert Tag.CriticalHit1 not in next(weapon for weapon in defiler.weapons if Tag.Impact in weapon.tags).tags
+
+    zagara = MusteredUnit.make(clone("Zagara"), {"! Broodmother / Zagara": True}, is_attacker=False)
+    assert Tag.Tough1 in zagara.tags
+
+
+def test_simulated_ability_profiles_are_marked_in_their_names():
+    profiles = [weapon for unit in ALL_UNITS for weapon in unit.weapons if Weapon.Flags.SimulationProfile in weapon.flags]
+
+    assert profiles
+    assert all(weapon.name.startswith("! ") for weapon in profiles)
+
+
+def test_ability_profile_chart_flags_are_consistent():
+    weapons = [weapon for unit in ALL_UNITS for weapon in unit.weapons]
+    profiles = [weapon for weapon in weapons if Weapon.Flags.TriggeredByCharge in weapon.flags]
+    movement_profiles = [weapon for weapon in weapons if Weapon.Flags.ResolvedInMovement in weapon.flags]
+    devastating_charge_profiles = [weapon for weapon in weapons if weapon.name == "! Devastating Charge"]
+
+    assert profiles
+    assert movement_profiles
+    assert all(Weapon.Flags.SimulationProfile in weapon.flags for weapon in profiles)
+    assert all(Weapon.Flags.SimulationProfile in weapon.flags for weapon in movement_profiles)
+    assert all(weapon.type_letter == "A" for weapon in profiles)
+    assert all(weapon.type_letter == "A" for weapon in movement_profiles)
+    assert all(Weapon.Flags.TriggeredByCharge not in weapon.flags for weapon in movement_profiles)
+    assert all(Weapon.Flags.TriggeredByCharge in weapon.flags for weapon in devastating_charge_profiles)
+
+
+def test_my_life_for_aiur_only_buffs_impact_rate_of_attack():
+    zealot = clone("Zealot")
+    zealot.weapons = (*zealot.weapons, Weapon("Other Ability", "A", Tag.Ground, 2, 3, None, None, 1))
+
+    zealot = MusteredUnit.make(zealot, {"My Life for Aiur": True})
+
+    assert next(weapon for weapon in zealot.weapons if Tag.Impact in weapon.tags).rate_of_attack == 4
+    assert next(weapon for weapon in zealot.weapons if weapon.name == "Other Ability").rate_of_attack == 2
+
+
+def test_transfusion_reduces_total_damage_not_below_zero():
+    attacker = MusteredUnit.make(next(unit for unit in TERRAN_UNITS if unit.name == "Marine"), {})
+    bile_launcher = next(unit for unit in ZERG_UNITS if unit.name == "Bile Launcher")
+    defender = MusteredUnit.make(bile_launcher, {"! Transfusion / Queen/Zagara": True}, is_attacker=False)
+    context = HookContext(attacker, defender)
+
+    for initial, expected in ((5, 3), (1, 0)):
+        total_damage = hooks.TotalDamageHookArgs(attacker, defender, ClashType.Ranged, initial)
+        context.call_hooks(Hook.ModifyTotalDamage, total_damage)
+        assert total_damage.value == expected
+
+
+def test_plague_biomass_upgrades_stack_on_one_profile():
+    plague = "! Plague"
+    second_bm = "! Plague / Second BM"
+    third_bm = "! Plague / Third BM"
+    cases = (
+        ({plague: True}, 5),
+        ({plague: True, second_bm: True}, 4),
+        ({plague: True, second_bm: True, third_bm: True}, 3),
+    )
+
+    assert muster("Defiler").batch(plague) is None
+
+    for config, hit in cases:
+        defiler = muster("Defiler", config)
+        batches = [batch for batch in defiler.weapon_batches if batch.weapon.name == plague]
+
+        assert len(batches) == 1
+        assert batches[0].weapon.rate_of_attack == "BT:Plague+2"
+        assert batches[0].weapon.hit == hit
+        assert batches[0].weapon.tags == Tag.Sidearm | Tag.DirectDamage

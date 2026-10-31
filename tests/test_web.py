@@ -31,11 +31,13 @@ def test_frontend_includes_shareable_configuration_support(tmp_path):
 
     assert index.status_code == 200
     assert b'id="link-version-warning"' in index.data
+    assert b'id="revision-info"' in index.data
     assert script.status_code == 200
     assert b"history.replaceState" in script.data
     assert b"readLinkedConfiguration" in script.data
     assert b"MAX_SHARE_FRAGMENT_LENGTH" in script.data
     assert b"allowedConfigurationMask" in script.data
+    assert b"unitDataRevision" in script.data
 
 
 def test_frontend_loads_configured_unit_display_from_backend(tmp_path):
@@ -212,6 +214,15 @@ def test_units_api_serializes_upgrade_point_costs(tmp_path):
 
     assert combat_shield["pointCost"] == {"small": 20, "large": 30}
     assert agg_12["pointCost"] == {"small": 10, "large": 10}
+
+
+def test_units_api_returns_application_and_unit_data_revisions(tmp_path):
+    application = web_app.create_flask_app(cache_dir=tmp_path)
+
+    response = application.test_client().get("/api/units")
+
+    assert response.json["cacheRevision"]["app"] == APP_REVISION
+    assert response.json["unitDataRevision"] == "Wave 3 / 27 October 2026"
 
 
 def test_configured_units_api_returns_backend_weapon_loadout(tmp_path):
