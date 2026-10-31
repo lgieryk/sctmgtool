@@ -45,9 +45,14 @@ def test_frontend_loads_configured_unit_display_from_backend(tmp_path):
 
     script = application.test_client().get("/app.js")
 
+    index = application.test_client().get("/")
+
+    assert index.status_code == 200
+    assert b'<section id="attacker-weapons-section" hidden>' in index.data
     assert script.status_code == 200
     assert b"/api/configurations/" in script.data
     assert b"AbortController" in script.data
+    assert b"attackerWeaponsSection.hidden = weaponRows.length === 0" in script.data
     assert b"getAttackerWeaponBatches" not in script.data
     assert b"activatesWeapon" not in script.data
 

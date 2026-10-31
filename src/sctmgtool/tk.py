@@ -228,6 +228,12 @@ def tkinter_main(units: list[Unit]):
         attacker.upgrade_vars.clear()
         weapon_labels.clear()
 
+        if attacker.prototype.weapons:
+            if w_frame.winfo_manager() != "pack":
+                w_frame.pack(padx=10, pady=2, fill="x", before=u_frame)
+        else:
+            w_frame.pack_forget()
+
         for upgrade in attacker.prototype.upgrades:
             if Upgrade.Flags.TypeOffensive in upgrade.flags:
                 var = ctk.BooleanVar(value=config[attacker.prototype.name][upgrade.name])

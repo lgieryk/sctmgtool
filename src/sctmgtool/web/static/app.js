@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const swapButton = document.querySelector("#swap-units");
   const attackerSummary = document.querySelector("#attacker-summary");
   const defenderSummary = document.querySelector("#defender-summary");
+  const attackerWeaponsSection = document.querySelector("#attacker-weapons-section");
   const attackerWeapons = document.querySelector("#attacker-weapons");
   const attackerUpgrades = document.querySelector("#attacker-upgrades");
   const defenderUpgrades = document.querySelector("#defender-upgrades");
@@ -215,12 +216,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return row;
     });
 
-    if (weaponRows.length === 0) {
-      const emptyRow = document.createElement("li");
-      emptyRow.textContent = "-";
-      weaponRows.push(emptyRow);
-    }
-
+    attackerWeaponsSection.hidden = weaponRows.length === 0;
     weapons.replaceChildren(...weaponRows);
   }
 
