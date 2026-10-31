@@ -2,7 +2,7 @@
 # see NOTICE.txt in this directory. They are NOT covered by the project's MIT
 # License.
 
-from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
+from sctmgtool.base import Cost, Faction, Hook, Range, Speed, Squad, StatefulHook, SurgeDie, Tag, Unit, UnitType, Upgrade, Weapon
 
 
 def _aftershock_rounds(_, roll, damage):
@@ -14,6 +14,20 @@ def _apply_lethal_hologram(unit):
     for weapon in unit.weapons:
         if weapon.type_letter != "A" and weapon.hit is not None:
             weapon.add_tag(Tag.Precision1)
+
+
+class _PointDefenseLaserHook(StatefulHook):
+    def __init__(self):
+        self.used = False
+
+    def reset_state(self):
+        self.used = False
+
+    def __call__(self, owner, roll, pools):
+        weapon = roll.weapon_batch.weapon
+        if owner is roll.defender and not self.used and weapon.type_letter == "R" and Tag.Instant not in weapon.tags:
+            pools.attack_pool.transfer_dice_to(pools.discard_pool, up_to=2)
+            self.used = True
 
 
 _TERRAN_UNITS: tuple[Unit, ...] = (
@@ -259,7 +273,14 @@ _TERRAN_UNITS: tuple[Unit, ...] = (
         squad=(Squad(Range(1, 1), 0, 0),),
         tags=Tag.Armoured | Tag.Flying | Tag.Mechanical,
         upgrades=(
-            Upgrade("Point Defense Laser", flags=Upgrade.Flags.TypeOther),
+            Upgrade(
+                "Point Defense Laser",
+                message=(
+                    'When another Friendly Unit Within 4" is targeted by a Ranged Attack without the INSTANT keyword, remove up to 2 dice from the '
+                    "Attack Pool. Then remove this Unit from the battlefield."
+                ),
+                flags=Upgrade.Flags.TypeOther | Upgrade.Flags.ReplacedByWorkaround,
+            ),
             Upgrade("Gliding", flags=Upgrade.Flags.TypeOther),
             Upgrade("Structure", flags=Upgrade.Flags.TypeOther),
         ),
@@ -873,12 +894,21 @@ def _apply_common_skills(units):
         apply=_apply_lethal_hologram,
         flags=Upgrade.Flags.Workaround,
     )
+    point_defense_laser = Upgrade(
+        "! Point Defense Laser / Point Defense Drone",
+        message=(
+            'Apply Point Defense Laser from a friendly Point Defense Drone Within 4": remove up to 2 dice from the first Attack Pool of a Ranged '
+            "Attack without INSTANT. Then remove the Point Defense Drone."
+        ),
+        apply={Hook.RollPoolsInitiated: _PointDefenseLaserHook()},
+        flags=Upgrade.Flags.TypeDefensive | Upgrade.Flags.Workaround,
+    )
 
     for unit in units:
         if unit.is_structure:
             to_add = []
         else:
-            to_add = apply_jim_raynors_orders(unit)
+            to_add = [*apply_jim_raynors_orders(unit), point_defense_laser]
 
         if any(weapon.hit is not None for weapon in unit.weapons):
             to_add.append(lethal_hologram)

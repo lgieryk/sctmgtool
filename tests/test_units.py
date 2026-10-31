@@ -7,7 +7,7 @@ from unittest.mock import patch
 from sctmgtool import hooks
 from sctmgtool.base import Hook, Tag, Upgrade, Weapon
 from sctmgtool.histogram import simulate_clash
-from sctmgtool.tools import ClashType, HookContext, MusteredUnit, WeaponBatch, process_unit_list
+from sctmgtool.tools import ClashType, DicePool, HookContext, MusteredUnit, WeaponBatch, process_unit_list
 from sctmgtool.units import ALL_UNITS
 from sctmgtool.units.terran import TERRAN_UNITS
 from sctmgtool.units.zerg import ZERG_UNITS
@@ -35,6 +35,37 @@ def test_debilitating_saliva_ignores_units_without_ranged_weapons():
     HookContext(marine, defender).apply_opponent_hooks(marine, defender)
     assert marine.batch("C-14 rifle").weapon.hit == 4
     assert marine.batch("Strike").weapon.hit == 5
+
+
+def test_point_defense_laser_applies_to_first_non_instant_ranged_weapon():
+    upgrade_name = "! Point Defense Laser / Point Defense Drone"
+    marine = next(unit for unit in TERRAN_UNITS if unit.name == "Marine")
+    drone = next(unit for unit in TERRAN_UNITS if unit.name == "Point Defense Drone")
+    assert marine.has_upgrade(upgrade_name)
+    assert not drone.has_upgrade(upgrade_name)
+
+    attacker = MusteredUnit.make(marine, {})
+    defender = MusteredUnit.make(marine, {upgrade_name: True}, is_attacker=False)
+    context = HookContext(attacker, defender)
+
+    instant_weapon = Weapon("Instant", 12, Tag.Ground, 4, 3, None, None, 1, tags=Tag.Instant)
+    ranged_weapon = Weapon("Ranged", 12, Tag.Ground, 4, 3, None, None, 1)
+    melee_weapon = Weapon("Melee", "E", Tag.Ground, 4, 3, None, None, 1)
+
+    def apply_hook(weapon):
+        attack_pool = DicePool.n_dice(4)
+        discard_pool = DicePool.empty()
+        pools = hooks.PoolHookArgs(attack_pool, DicePool.empty(), DicePool.empty(), discard_pool)
+        context.call_hooks(Hook.RollPoolsInitiated, hooks.RollHookArgs(attacker, WeaponBatch(1, weapon), defender), pools)
+        return attack_pool.size(), discard_pool.size()
+
+    assert apply_hook(instant_weapon) == (4, 0)
+    assert apply_hook(melee_weapon) == (4, 0)
+    assert apply_hook(ranged_weapon) == (2, 2)
+    assert apply_hook(ranged_weapon) == (4, 0)
+
+    context.reset_hook_state()
+    assert apply_hook(ranged_weapon) == (2, 2)
 
 
 def test_ancillary_carapace_applies_tough_only_to_first_weapon_of_each_clash():
